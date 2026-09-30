@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LemiTree — sleep, on the evidence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF2F5; --panel:#FFFFFF; --ink:#1B2A41; --ink-2:#4A5A70; --line:#D5DCE4;
+  --moss:#4A7C59; --moss-soft:#E4EFE7; --amber:#C9873B; --amber-soft:#F6ECDD;
+  --slate:#6B7A8C; --slate-soft:#E8ECF0; --brick:#A63D40; --brick-soft:#F5E3E3;
+  --r:14px; --gap:20px;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){ :root:not([data-theme=light]){
+  --bg:#141B26; --panel:#1C2533; --ink:#E9EEF4; --ink-2:#AAB5C4; --line:#2E3A4B;
+  --moss:#7DB88E; --moss-soft:#22352A; --amber:#E0A55C; --amber-soft:#3A2E1F;
+  --slate:#94A2B3; --slate-soft:#26303C; --brick:#E07C7F; --brick-soft:#3B2223; }}
+*{box-sizing:border-box} html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Manrope,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+header{max-width:1180px;margin:0 auto;padding:28px var(--gap) 8px;display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.brand{font-weight:800;font-size:22px;letter-spacing:-.01em}
+.brand span{color:var(--moss)}
+.tag{color:var(--ink-2);font-size:14px}
+main{max-width:1180px;margin:0 auto;padding:8px var(--gap) 60px;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:var(--gap);align-items:start}
+@media (max-width:860px){ main{grid-template-columns:1fr} #results{position:static;align-self:auto} #results .panel{max-height:none;overflow:visible}
+  .pill{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);border:0;border-radius:999px;padding:12px 18px;font:inherit;font-weight:700;box-shadow:0 6px 20px rgba(0,0,0,.18);cursor:pointer;z-index:10;white-space:nowrap;max-width:90vw} }
+@media (min-width:861px){ .pill{display:none} }
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:22px}
+h1{font-size:30px;line-height:1.15;letter-spacing:-.02em;margin:0 0 8px;font-weight:800}
+h2{font-size:17px;margin:0 0 4px;font-weight:700}
+.lead{color:var(--ink-2);margin:0 0 18px;max-width:60ch}
+.modes{display:flex;gap:8px;margin:0 0 18px}
+.modes button{flex:1;padding:10px 12px;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:10px;font:inherit;font-weight:600;cursor:pointer}
+.modes button[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.progress{height:6px;background:var(--slate-soft);border-radius:3px;overflow:hidden;margin:0 0 6px}
+.progress i{display:block;height:100%;background:var(--moss);width:0;transition:width .35s ease}
+.progress-label{font-size:13px;color:var(--ink-2);margin-bottom:18px}
+.q{padding:16px 0;border-top:1px solid var(--line)}
+.q:first-of-type{border-top:0}
+.q .cat{font-size:12px;color:var(--ink-2);margin-bottom:4px}
+.q .text{font-weight:600;margin-bottom:10px;max-width:62ch}
+.scale{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.scale button{padding:10px 4px;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:9px;font:inherit;font-weight:700;cursor:pointer;transition:transform .08s}
+.scale button:hover{border-color:var(--ink)}
+.scale button[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink);transform:scale(1.04)}
+.anchors{display:flex;justify-content:space-between;font-size:12px;color:var(--ink-2);margin-top:6px;gap:10px}
+.anchors span:last-child{text-align:right}
+.settled{background:var(--moss-soft);color:var(--moss);border-radius:10px;padding:12px 14px;font-size:14px;margin:14px 0}
+/* results */
+#results{position:sticky;top:12px;align-self:start}
+#results .panel{max-height:calc(100vh - 24px);overflow:auto}
+.empty{color:var(--ink-2);padding:26px 0;text-align:center}
+.rec{padding:16px 0;border-top:1px solid var(--line);animation:in .3s ease}
+.rec:first-of-type{border-top:0}
+@keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.rec{animation:none}.progress i,.scale button{transition:none}}
+.rec .rank{color:var(--ink-2);font-size:13px;font-weight:600}
+.rec .name{font-weight:700;font-size:17px;margin:2px 0 6px;line-height:1.3}
+.tier{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px}
+.tier::before{content:"";width:8px;height:8px;border-radius:50%}
+.tier.evidenced{background:var(--moss-soft);color:var(--moss)}.tier.evidenced::before{background:var(--moss)}
+.tier.supported{background:var(--amber-soft);color:var(--amber)}.tier.supported::before{border:2px solid var(--amber)}
+.tier.unstudied{background:var(--slate-soft);color:var(--slate)}.tier.unstudied::before{border:2px dashed var(--slate)}
+.tier.none{background:var(--slate-soft);color:var(--slate)}.tier.none::before{background:var(--slate)}
+.meta{font-size:13px;color:var(--ink-2);margin-top:6px;line-height:1.45}
+.meta b{color:var(--ink);font-weight:600}
+.because{font-size:13px;margin-top:6px;color:var(--ink-2)}
+.desc{font-size:14px;margin-top:8px;color:var(--ink);max-width:60ch}
+.more{border:0;background:none;color:var(--moss);font:inherit;font-weight:700;cursor:pointer;padding:0}
+.referral{background:var(--brick-soft);border:1px solid var(--brick);border-radius:12px;padding:16px;margin-bottom:16px}
+.referral h2{color:var(--brick)}
+.referral ul{margin:8px 0 0 18px;padding:0;font-size:14px}
+/* controls */
+details{margin-top:18px;border-top:1px solid var(--line);padding-top:12px}
+summary{cursor:pointer;font-weight:600;font-size:14px}
+.toggles{display:grid;gap:8px;margin-top:10px;font-size:14px}
+.toggles label{display:flex;gap:10px;align-items:flex-start}
+.toggles small{display:block;color:var(--ink-2)}
+.cond input{width:100%;padding:10px;border:1px solid var(--line);border-radius:9px;font:inherit;background:transparent;color:var(--ink);margin-top:8px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{background:var(--slate-soft);border-radius:999px;padding:4px 10px;font-size:13px;display:inline-flex;gap:6px;align-items:center}
+.chip button{border:0;background:none;cursor:pointer;color:var(--ink-2);font-size:15px;padding:0}
+#sugg{position:relative}
+#sugg ul{position:absolute;z-index:5;left:0;right:0;list-style:none;margin:4px 0 0;padding:4px;background:var(--panel);border:1px solid var(--line);border-radius:9px;max-height:200px;overflow:auto}
+#sugg li{padding:6px 8px;border-radius:6px;cursor:pointer;font-size:14px}#sugg li:hover{background:var(--slate-soft)}
+/* chat */
+#chat{display:none}
+.thread{display:flex;flex-direction:column;gap:10px;max-height:52vh;overflow:auto;padding:4px 2px}
+.msg{padding:10px 14px;border-radius:12px;max-width:85%;font-size:15px;line-height:1.45}
+.msg.bot{background:var(--slate-soft);align-self:flex-start;border-bottom-left-radius:4px}
+.msg.me{background:var(--ink);color:var(--bg);align-self:flex-end;border-bottom-right-radius:4px}
+.confirm{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--ink-2);margin-top:6px}
+.confirm button{padding:5px 10px;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:8px;font:inherit;cursor:pointer;font-weight:600}
+.confirm button.on{background:var(--moss);color:#fff;border-color:var(--moss)}
+.composer{display:flex;gap:8px;margin-top:12px}
+.composer input{flex:1;padding:12px;border:1px solid var(--line);border-radius:10px;font:inherit;background:transparent;color:var(--ink)}
+.composer button{padding:12px 18px;border:0;background:var(--ink);color:var(--bg);border-radius:10px;font:inherit;font-weight:700;cursor:pointer}
+footer{max-width:1180px;margin:0 auto;padding:0 var(--gap) 40px;color:var(--ink-2);font-size:13px;max-width:78ch}
+:focus-visible{outline:3px solid var(--moss);outline-offset:2px}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">Lemi<span>Tree</span></div>
+  <div class="tag">Sleep, on the evidence · work in progress</div>
+</header>
+
+<main>
+  <section id="ask" class="panel">
+    <h1>Where is your sleep going wrong?</h1>
+    <p class="lead">Answer what you can. Recommendations take shape as you go, and each one shows the evidence behind it — including when the honest answer is “not much yet”.</p>
+    <div class="modes" role="group" aria-label="How to answer">
+      <button id="m-click" aria-pressed="true">Click to answer</button>
+      <button id="m-chat" aria-pressed="false">Answer by chat</button>
+    </div>
+    <div class="progress"><i id="bar"></i></div>
+    <div class="progress-label" id="plabel">0 of 25 answered</div>
+    <div id="settled" class="settled" hidden></div>
+    <div id="questions"></div>
+
+    <div id="chat">
+      <div class="thread" id="thread"></div>
+      <div class="composer">
+        <input id="say" placeholder="Type your answer…" autocomplete="off">
+        <button id="send">Send</button>
+      </div>
+    </div>
+
+    <details>
+      <summary>Health conditions (so we can hide anything unsafe for you)</summary>
+      <div class="cond" id="sugg">
+        <input id="cond" placeholder="Start typing a condition…" autocomplete="off">
+        <ul id="sugglist" hidden></ul>
+      </div>
+      <div class="chips" id="chips"></div>
+    </details>
+
+    <details>
+      <summary>Which evidence to include</summary>
+      <div class="toggles" id="toggles">
+        <label><input type="checkbox" value="evidenced" checked> <span><b>Evidenced</b><small>a measured effect with a reliable interval</small></span></label>
+        <label><input type="checkbox" value="supported_unquantified" checked> <span><b>Supported, not yet quantified</b><small>verified studies exist; numbers not extracted yet</small></span></label>
+        <label><input type="checkbox" value="unstudied" checked> <span><b>Unstudied</b><small>nobody has looked; ranked by how easy it is</small></span></label>
+        <label><input type="checkbox" value="no_reliable_effect"> <span><b>No reliable effect detected</b><small>studied; the interval includes zero</small></span></label>
+        <label><input type="checkbox" value="searched_unsupported"> <span><b>Searched, unsupported</b><small>we looked and found nothing in favour</small></span></label>
+      </div>
+    </details>
+  </section>
+
+  <aside id="results">
+    <div class="panel">
+      <h2 id="rtitle">Your recommendations</h2>
+      <div id="sev" class="meta"></div>
+      <div id="rbody"><div class="empty">Answer a question and they'll appear here.</div></div>
+    </div>
+  </aside>
+</main>
+
+<button class="pill" id="pill" hidden>See your recommendations ↓</button>
+<footer>
+  <p><b>Please read.</b> LemiTree offers educational information, not medical advice. It does not diagnose or treat anything. Evidence labels describe published research, not a prediction about you. Our safety filter can only act on conditions you tell us about. Persistent sleep problems deserve a doctor — chronic insomnia and sleep apnoea are medical conditions and are treatable.</p>
+  <p>Every recommendation traces back to audited scientific papers. Where the evidence is thin, we say so rather than pretend.</p>
+</footer>
+
+<script>
+const $=s=>document.querySelector(s);
+let Q=[], answers={}, conditions=[], lastTop=null, stableCount=0, chatIdx=0, chatHist=[], pendingScore=null;
+
+async function init(){
+  Q=await (await fetch('/api/questions')).json();
+  const qs=$('#questions');
+  Q.forEach((q,i)=>{
+    const d=document.createElement('div'); d.className='q'; d.dataset.qid=q.qid;
+    d.innerHTML=`<div class="cat">${q.category}</div><div class="text">${q.text}</div>
+      <div class="scale" role="group" aria-label="${q.text}">${[1,2,3,4,5].map(n=>`<button aria-pressed="false" data-n="${n}">${n}</button>`).join('')}</div>
+      <div class="anchors"><span>${q.low||''}</span><span>${q.high||''}</span></div>`;
+    d.querySelectorAll('.scale button').forEach(b=>b.onclick=()=>setAnswer(q.qid,+b.dataset.n,d));
+    qs.appendChild(d);
+  });
+  // anchors come from the API? no — fetch them via questions endpoint fallback
+  render();
+}
+function setAnswer(qid,n,el){
+  answers[qid]=n;
+  (el||document.querySelector(`.q[data-qid="${qid}"]`)).querySelectorAll('.scale button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.n===n));
+  render();
+}
+function statuses(){return [...document.querySelectorAll('#toggles input:checked')].map(i=>i.value)}
+async function render(){
+  const answered=Object.keys(answers).length;
+  $('#bar').style.width=(answered/Q.length*100)+'%';
+  $('#plabel').textContent=`${answered} of ${Q.length} answered`;
+  if(!answered){ $('#rbody').innerHTML='<div class="empty">Answer a question and they\'ll appear here.</div>'; $('#sev').textContent=''; return; }
+  const r=await (await fetch('/api/recommend',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({answers,conditions,statuses:statuses(),top_n:5})})).json();
+  // severity line
+  const s=r.severity; let sevtxt='';
+  if(s&&s.severity!=null&&s.answered>=3){ const names={thriving:'doing well',okay:'okay',struggling:'struggling',suffering:'having a hard time'}; sevtxt=`Overall you seem to be <b>${names[s.band]||s.band}</b> on sleep (${s.severity>0?'+':''}${s.severity} on −10…+10).`; }
+  $('#sev').innerHTML=sevtxt;
+  let html='';
+  if(r.lead_with_referral){
+    html+=`<div class="referral"><h2>${r.suppress_actions?'Please talk to a doctor first':'Worth talking to a doctor'}</h2><p style="margin:6px 0 0;font-size:14px">${r.referral_message}</p>`;
+    if(s.red_flags&&s.red_flags.length) html+=`<ul>${s.red_flags.map(f=>`<li>${f}</li>`).join('')}</ul>`;
+    html+=`</div>`;
+  }
+  if(r.suppress_actions){
+    html+=`<div class="empty">We're not showing self-help actions here on purpose — the right next step is a clinician.</div>`;
+  } else if(!r.recommendations.length){
+    html+=`<div class="empty">Nothing to recommend yet for what you've answered — that can be a good sign.</div>`;
+  } else {
+    if(r.lead_with_referral) html+=`<div class="meta" style="margin-bottom:8px">These may still help, but they're secondary to seeing a doctor.</div>`;
+    r.recommendations.forEach((x,i)=>{
+      const tierCls={evidenced:'evidenced',supported_unquantified:'supported',unstudied:'unstudied',no_reliable_effect:'none',searched_unsupported:'none'}[x.status]||'none';
+      const tierTxt={evidenced:'Evidenced',supported_unquantified:'Supported, not yet quantified',unstudied:'Unstudied',no_reliable_effect:'No reliable effect detected',searched_unsupported:'Searched, unsupported'}[x.status]||x.status;
+      let ev='';
+      if(x.status==='evidenced'&&x.g!=null){ const ci=x.ci&&x.ci[0]!=null?` (95% interval ${fmt(x.ci[0])} to ${fmt(x.ci[1])})`:''; ev=`Effect on <b>${x.variable}</b>: ${fmt(x.g)}${ci}, ${x.k} stud${x.k===1?'y':'ies'}.`; }
+      else if(x.status==='supported_unquantified') ev=`Verified studies exist for <b>${x.variable}</b>; the numbers haven't been extracted yet. Ranked by how easy it is.`;
+      else if(x.status==='unstudied') ev=`No study has looked at this yet. Shown because it's cheap to try, not because it's proven.`;
+      else if(x.status==='no_reliable_effect') ev=`Studied, but the interval includes zero — so far, no reliable effect detected.`;
+      else if(x.status==='searched_unsupported') ev=`We searched the literature and found nothing in favour.`;
+      const cost=[]; if(x.attention_mode) cost.push({embedded:'happens alongside what you already do',passive:'runs by itself once set up',dedicated:`${fmtMin(x.dedicated_time_min)} of your attention each time`}[x.attention_mode]);
+      if(x.setup_time_min) cost.push(`about ${fmtMin(x.setup_time_min)} to set up`); if(x.setup_cost_eur) cost.push(`≈ €${Math.round(x.setup_cost_eur)} once`);
+      const cls=x.one_timer_class&&x.one_timer_class!=='recurring'?` · one-timer (${x.one_timer_class.replace('_',' ')})`:'';
+      html+=`<div class="rec"><div class="rank">${i+1}</div><div class="name">${x.action}</div><span class="tier ${tierCls}">${tierTxt}</span>
+        <div class="meta">${ev}</div>${cost.length?`<div class="meta">Cost: ${cost.join(', ')}${cls}</div>`:''}
+        ${x.because&&x.because.length?`<div class="because">Because of your answer on: ${x.because.map(b=>`“${b}”`).join(' and ')}</div>`:''}
+        ${x.description?desc(x.description):''}</div>`;
+    });
+  }
+  $('#rbody').innerHTML=html;
+  const pill=$('#pill'); pill.hidden=!(r.recommendations.length||r.lead_with_referral); pill.textContent=r.lead_with_referral?'See what we recommend ↓':`See your ${r.recommendations.length} recommendation${r.recommendations.length===1?'':'s'} ↓`;
+  // stability signal
+  const top=r.recommendations.slice(0,5).map(x=>x.abiz).join('|');
+  stableCount = top===lastTop ? stableCount+1 : 0; lastTop=top;
+  const left=Q.length-answered; const st=$('#settled');
+  if(stableCount>=3&&left>0&&!r.suppress_actions){ st.hidden=false; st.textContent=`Your top recommendations haven't changed for the last ${stableCount} answers. ${left} question${left>1?'s':''} left if you want more precision — or stop here.`; }
+  else st.hidden=true;
+}
+function desc(t){ if(t.length<=220) return `<div class="desc">${t}</div>`;
+  const cut=t.slice(0,220).replace(/\s+\S*$/,'');
+  return `<div class="desc"><span class="short">${cut}… <button class="more">more</button></span><span class="long" hidden>${t} <button class="more">less</button></span></div>`; }
+document.addEventListener('click',e=>{ if(!e.target.classList.contains('more')) return; const d=e.target.closest('.desc'); d.querySelector('.short').hidden=!d.querySelector('.short').hidden; d.querySelector('.long').hidden=!d.querySelector('.long').hidden; });
+const fmt=v=>(v>0?'+':'')+Number(v).toFixed(2);
+const fmtMin=m=>m==null?'':(m<1?'under a minute':m<60?`${Math.round(m)} min`:`${(m/60).toFixed(1)} h`);
+
+/* conditions picker */
+let ALLC=[];
+fetch('/api/conditions').then(r=>r.json()).then(l=>ALLC=l);
+$('#cond').addEventListener('input',e=>{
+  const v=e.target.value.trim().toLowerCase(); const ul=$('#sugglist');
+  if(v.length<2){ul.hidden=true;return}
+  const hits=ALLC.filter(c=>c.toLowerCase().includes(v)&&!conditions.includes(c)).slice(0,8);
+  ul.innerHTML=hits.map(h=>`<li>${h}</li>`).join(''); ul.hidden=!hits.length;
+  ul.querySelectorAll('li').forEach(li=>li.onclick=()=>{conditions.push(li.textContent);e.target.value='';ul.hidden=true;drawChips();render();});
+});
+function drawChips(){ $('#chips').innerHTML=conditions.map((c,i)=>`<span class="chip">${c}<button aria-label="remove" data-i="${i}">×</button></span>`).join('');
+  $('#chips').querySelectorAll('button').forEach(b=>b.onclick=()=>{conditions.splice(+b.dataset.i,1);drawChips();render();}); }
+$('#toggles').addEventListener('change',render);
+
+/* chat mode */
+$('#m-click').onclick=()=>mode('click'); $('#m-chat').onclick=()=>mode('chat');
+function mode(m){ $('#m-click').setAttribute('aria-pressed',m==='click'); $('#m-chat').setAttribute('aria-pressed',m==='chat');
+  $('#questions').style.display=m==='click'?'':'none'; $('#chat').style.display=m==='chat'?'block':'none';
+  if(m==='chat'&&!chatHist.length) askNext(); }
+function nextUnanswered(){ return Q.findIndex(q=>!(q.qid in answers)); }
+async function askNext(){ chatIdx=nextUnanswered(); if(chatIdx<0){ bot("That's every question. Your recommendations are on the right."); return; } await chat(null); }
+function bot(t,confirmScore){ const d=document.createElement('div'); d.className='msg bot'; d.textContent=t;
+  if(confirmScore){ const c=document.createElement('div'); c.className='confirm'; c.innerHTML='Recorded as: '+[1,2,3,4,5].map(n=>`<button data-n="${n}" class="${n===confirmScore?'on':''}">${n}</button>`).join('')+' <span>— tap to correct</span>';
+    c.querySelectorAll('button').forEach(b=>b.onclick=()=>{c.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');setAnswer(Q[chatIdx].qid,+b.dataset.n);});
+    d.appendChild(c);} $('#thread').appendChild(d); $('#thread').scrollTop=1e9; }
+function me(t){ const d=document.createElement('div'); d.className='msg me'; d.textContent=t; $('#thread').appendChild(d); $('#thread').scrollTop=1e9; }
+async function chat(userText){
+  if(userText){ me(userText); chatHist.push({role:'user',content:userText}); }
+  const r=await (await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({messages:chatHist,current_qid:Q[chatIdx]?.qid})})).json();
+  if(r.detail){ bot('Chat isn\'t available right now: '+r.detail); return; }
+  chatHist.push({role:'assistant',content:r.reply});
+  if(r.score){ setAnswer(Q[chatIdx].qid,r.score); bot(r.reply,r.score); chatHist=[]; setTimeout(askNext,600); }
+  else bot(r.reply);
+}
+$('#send').onclick=()=>{const v=$('#say').value.trim(); if(!v)return; $('#say').value=''; chat(v);};
+$('#say').addEventListener('keydown',e=>{if(e.key==='Enter')$('#send').click();});
+
+$('#pill').onclick=()=>$('#results').scrollIntoView({behavior:'smooth'});
+init();
+</script>
+</body>
+</html>
