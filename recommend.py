@@ -126,6 +126,12 @@ def to_scale(score_1_5):
     """1-5 answer (1 = worst) -> -10..+10."""
     return (score_1_5 - 3) * 5.0
 
+# The AGGREGATE referral needs enough answers to mean something. One honest
+# answer ("I wake a couple of times a night") must never be enough to tell
+# someone to see a doctor. Red flags are different: a single report of
+# witnessed apnoeas IS sufficient, so they fire immediately.
+MIN_SYMPTOMS_FOR_AGGREGATE = 5
+
 def domain_severity(questions, answers, referral_threshold=-4.0):
     """Return a dict describing how the person is doing in this domain.
 
@@ -148,10 +154,12 @@ def domain_severity(questions, answers, referral_threshold=-4.0):
         return {"severity": None, "band": None, "red_flags": [], "referral": None,
                 "answered": 0}
     sev = sum(vals) / len(vals)
-    band = ("suffering" if sev < referral_threshold else
+    enough = len(vals) >= MIN_SYMPTOMS_FOR_AGGREGATE
+    band = None if not enough else (
+            "suffering" if sev < referral_threshold else
             "struggling" if sev < 0 else
             "okay" if sev < 4 else "thriving")
-    referral = "urgent" if flags else ("recommended" if sev < referral_threshold else None)
+    referral = "urgent" if flags else ("recommended" if (enough and sev < referral_threshold) else None)
     return {"severity": round(sev, 2), "band": band, "red_flags": flags,
             "referral": referral, "answered": len(vals)}
 

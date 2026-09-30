@@ -74,6 +74,27 @@ h2{font-size:17px;margin:0 0 4px;font-weight:700}
 .referral{background:var(--brick-soft);border:1px solid var(--brick);border-radius:12px;padding:16px;margin-bottom:16px}
 .referral h2{color:var(--brick)}
 .referral ul{margin:8px 0 0 18px;padding:0;font-size:14px}
+/* results controls */
+.controls{border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:14px 0 4px;padding:12px 0;display:grid;gap:12px}
+.ctl-label{font-size:12px;color:var(--ink-2);margin-bottom:6px}
+.chipset{display:flex;flex-wrap:wrap;gap:6px}
+.tog{border:1px solid var(--line);background:transparent;color:var(--ink-2);border-radius:999px;padding:5px 11px;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.tog[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.show summary{font-size:13px;color:var(--ink-2);font-weight:600}
+.show .chipset{margin-top:8px}
+.controls details{margin:0;border:0;padding:0}
+/* cards */
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 12px}
+.tag{font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;border:1px solid transparent}
+.tag.sci{background:var(--moss-soft);color:var(--moss)}
+.tag.one{background:var(--ink);color:var(--bg)}
+.tag.quick{background:var(--amber-soft);color:var(--amber)}
+.facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin:4px 0 10px}
+.fact{background:var(--panel);padding:9px 11px}
+.fact .k{font-size:11px;color:var(--ink-2);margin-bottom:2px}
+.fact .v{font-size:14px;font-weight:700;line-height:1.3}
+.fact .s{font-size:12px;color:var(--ink-2);margin-top:1px}
+@media (max-width:480px){.facts{grid-template-columns:1fr 1fr}.fact.ev{grid-column:1/-1}}
 /* controls */
 details{margin-top:18px;border-top:1px solid var(--line);padding-top:12px}
 summary{cursor:pointer;font-weight:600;font-size:14px}
@@ -139,22 +160,43 @@ footer{max-width:1180px;margin:0 auto;padding:0 var(--gap) 40px;color:var(--ink-
       <div class="chips" id="chips"></div>
     </details>
 
-    <details>
-      <summary>Which evidence to include</summary>
-      <div class="toggles" id="toggles">
-        <label><input type="checkbox" value="evidenced" checked> <span><b>Evidenced</b><small>a measured effect with a reliable interval</small></span></label>
-        <label><input type="checkbox" value="supported_unquantified" checked> <span><b>Supported, not yet quantified</b><small>verified studies exist; numbers not extracted yet</small></span></label>
-        <label><input type="checkbox" value="unstudied" checked> <span><b>Unstudied</b><small>nobody has looked; ranked by how easy it is</small></span></label>
-        <label><input type="checkbox" value="no_reliable_effect"> <span><b>No reliable effect detected</b><small>studied; the interval includes zero</small></span></label>
-        <label><input type="checkbox" value="searched_unsupported"> <span><b>Searched, unsupported</b><small>we looked and found nothing in favour</small></span></label>
-      </div>
-    </details>
+
   </section>
 
   <aside id="results">
     <div class="panel">
       <h2 id="rtitle">Your recommendations</h2>
       <div id="sev" class="meta"></div>
+      <div class="controls">
+        <div class="ctl">
+          <div class="ctl-label">Show only</div>
+          <div class="chipset" id="f-tags">
+            <button class="tog" data-tag="science_backed" aria-pressed="false">Science-backed</button>
+            <button class="tog" data-tag="one_timer" aria-pressed="false">One-timers</button>
+            <button class="tog" data-tag="quick_win" aria-pressed="false">Quick wins</button>
+          </div>
+        </div>
+        <div class="ctl">
+          <div class="ctl-label">Evidence to include</div>
+          <div class="chipset" id="toggles">
+            <button class="tog" data-status="evidenced" aria-pressed="true">Science-backed</button>
+            <button class="tog" data-status="supported_unquantified" aria-pressed="true">Studied, not yet measured</button>
+            <button class="tog" data-status="unstudied" aria-pressed="true">Unstudied</button>
+            <button class="tog" data-status="no_reliable_effect" aria-pressed="false">No reliable effect</button>
+            <button class="tog" data-status="searched_unsupported" aria-pressed="false">Searched, unsupported</button>
+          </div>
+        </div>
+        <details class="show">
+          <summary>What each card shows</summary>
+          <div class="chipset" id="f-show">
+            <button class="tog" data-show="cost" aria-pressed="true">Money</button>
+            <button class="tog" data-show="time" aria-pressed="true">Time</button>
+            <button class="tog" data-show="evidence" aria-pressed="true">Evidence</button>
+            <button class="tog" data-show="why" aria-pressed="true">Why for you</button>
+            <button class="tog" data-show="desc" aria-pressed="true">Description</button>
+          </div>
+        </details>
+      </div>
       <div id="rbody"><div class="empty">Answer a question and they'll appear here.</div></div>
     </div>
   </aside>
@@ -189,17 +231,18 @@ function setAnswer(qid,n,el){
   (el||document.querySelector(`.q[data-qid="${qid}"]`)).querySelectorAll('.scale button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.n===n));
   render();
 }
-function statuses(){return [...document.querySelectorAll('#toggles input:checked')].map(i=>i.value)}
+function statuses(){return [...document.querySelectorAll('#toggles .tog[aria-pressed=true]')].map(b=>b.dataset.status)}
+function onlyTags(){return [...document.querySelectorAll('#f-tags .tog[aria-pressed=true]')].map(b=>b.dataset.tag)}
 async function render(){
   const answered=Object.keys(answers).length;
   $('#bar').style.width=(answered/Q.length*100)+'%';
   $('#plabel').textContent=`${answered} of ${Q.length} answered`;
   if(!answered){ $('#rbody').innerHTML='<div class="empty">Answer a question and they\'ll appear here.</div>'; $('#sev').textContent=''; return; }
   const r=await (await fetch('/api/recommend',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({answers,conditions,statuses:statuses(),top_n:5})})).json();
+    body:JSON.stringify({answers,conditions,statuses:statuses(),only_tags:onlyTags(),top_n:5})})).json();
   // severity line
   const s=r.severity; let sevtxt='';
-  if(s&&s.severity!=null&&s.answered>=3){ const names={thriving:'doing well',okay:'okay',struggling:'struggling',suffering:'having a hard time'}; sevtxt=`Overall you seem to be <b>${names[s.band]||s.band}</b> on sleep (${s.severity>0?'+':''}${s.severity} on −10…+10).`; }
+  if(s&&s.severity!=null&&s.band){ const names={thriving:'doing well',okay:'okay',struggling:'struggling',suffering:'having a hard time'}; sevtxt=`Overall you seem to be <b>${names[s.band]||s.band}</b> on sleep (${s.severity>0?'+':''}${s.severity} on −10…+10).`; }
   $('#sev').innerHTML=sevtxt;
   let html='';
   if(r.lead_with_referral){
@@ -210,26 +253,12 @@ async function render(){
   if(r.suppress_actions){
     html+=`<div class="empty">We're not showing self-help actions here on purpose — the right next step is a clinician.</div>`;
   } else if(!r.recommendations.length){
-    html+=`<div class="empty">Nothing to recommend yet for what you've answered — that can be a good sign.</div>`;
+    html+= onlyTags().length
+      ? `<div class="empty">No recommendation matches that filter for your answers. Try switching it off, or including more kinds of evidence.</div>`
+      : `<div class="empty">Nothing to recommend yet for what you've answered — that can be a good sign.</div>`;
   } else {
     if(r.lead_with_referral) html+=`<div class="meta" style="margin-bottom:8px">These may still help, but they're secondary to seeing a doctor.</div>`;
-    r.recommendations.forEach((x,i)=>{
-      const tierCls={evidenced:'evidenced',supported_unquantified:'supported',unstudied:'unstudied',no_reliable_effect:'none',searched_unsupported:'none'}[x.status]||'none';
-      const tierTxt={evidenced:'Evidenced',supported_unquantified:'Supported, not yet quantified',unstudied:'Unstudied',no_reliable_effect:'No reliable effect detected',searched_unsupported:'Searched, unsupported'}[x.status]||x.status;
-      let ev='';
-      if(x.status==='evidenced'&&x.g!=null){ const ci=x.ci&&x.ci[0]!=null?` (95% interval ${fmt(x.ci[0])} to ${fmt(x.ci[1])})`:''; ev=`Effect on <b>${x.variable}</b>: ${fmt(x.g)}${ci}, ${x.k} stud${x.k===1?'y':'ies'}.`; }
-      else if(x.status==='supported_unquantified') ev=`Verified studies exist for <b>${x.variable}</b>; the numbers haven't been extracted yet. Ranked by how easy it is.`;
-      else if(x.status==='unstudied') ev=`No study has looked at this yet. Shown because it's cheap to try, not because it's proven.`;
-      else if(x.status==='no_reliable_effect') ev=`Studied, but the interval includes zero — so far, no reliable effect detected.`;
-      else if(x.status==='searched_unsupported') ev=`We searched the literature and found nothing in favour.`;
-      const cost=[]; if(x.attention_mode) cost.push({embedded:'happens alongside what you already do',passive:'runs by itself once set up',dedicated:`${fmtMin(x.dedicated_time_min)} of your attention each time`}[x.attention_mode]);
-      if(x.setup_time_min) cost.push(`about ${fmtMin(x.setup_time_min)} to set up`); if(x.setup_cost_eur) cost.push(`≈ €${Math.round(x.setup_cost_eur)} once`);
-      const cls=x.one_timer_class&&x.one_timer_class!=='recurring'?` · one-timer (${x.one_timer_class.replace('_',' ')})`:'';
-      html+=`<div class="rec"><div class="rank">${i+1}</div><div class="name">${x.action}</div><span class="tier ${tierCls}">${tierTxt}</span>
-        <div class="meta">${ev}</div>${cost.length?`<div class="meta">Cost: ${cost.join(', ')}${cls}</div>`:''}
-        ${x.because&&x.because.length?`<div class="because">Because of your answer on: ${x.because.map(b=>`“${b}”`).join(' and ')}</div>`:''}
-        ${x.description?desc(x.description):''}</div>`;
-    });
+    r.recommendations.forEach((x,i)=>{ html+=card(x,i); });
   }
   $('#rbody').innerHTML=html;
   const pill=$('#pill'); pill.hidden=!(r.recommendations.length||r.lead_with_referral); pill.textContent=r.lead_with_referral?'See what we recommend ↓':`See your ${r.recommendations.length} recommendation${r.recommendations.length===1?'':'s'} ↓`;
@@ -244,6 +273,42 @@ function desc(t){ if(t.length<=220) return `<div class="desc">${t}</div>`;
   const cut=t.slice(0,220).replace(/\s+\S*$/,'');
   return `<div class="desc"><span class="short">${cut}… <button class="more">more</button></span><span class="long" hidden>${t} <button class="more">less</button></span></div>`; }
 document.addEventListener('click',e=>{ if(!e.target.classList.contains('more')) return; const d=e.target.closest('.desc'); d.querySelector('.short').hidden=!d.querySelector('.short').hidden; d.querySelector('.long').hidden=!d.querySelector('.long').hidden; });
+const TIER={evidenced:['Science-backed','evidenced'],supported_unquantified:['Studied, not yet measured','supported'],
+  unstudied:['Unstudied','unstudied'],no_reliable_effect:['No reliable effect','none'],searched_unsupported:['Searched, unsupported','none']};
+const SHOW=()=>Object.fromEntries([...document.querySelectorAll('#f-show .tog')].map(b=>[b.dataset.show,b.getAttribute('aria-pressed')==='true']));
+const euro=v=>v==null?'—':(v===0?'free':(v<1?'< €1':`€${Math.round(v)}`));
+function timeVal(x){ const m=x.dedicated_min_per_day;
+  if(x.tags&&x.tags.one_timer) return ['none','after setup'];
+  if(m==null) return ['—','frequency unknown'];
+  return [m<1?'< 1 min':`${Math.round(m)} min`, x.attention_mode==='embedded'?'a day, alongside what you do':'a day'];
+}
+function card(x,i){
+  const sh=SHOW(); const [tierTxt,tierCls]=TIER[x.status]||[x.status,'none'];
+  const t=x.tags||{};
+  let tags=`<span class="tier ${tierCls}">${tierTxt}</span>`;
+  if(t.one_timer) tags+=`<span class="tag one">One-timer</span>`;
+  if(t.quick_win) tags+=`<span class="tag quick">Quick win</span>`;
+  const facts=[];
+  if(sh.cost){ const su=x.setup_cost_eur, mo=x.cost_eur_per_month;
+    const v = su==null?'—':(su===0?'Free':`${euro(su)} once`);
+    const sub = mo==null?'ongoing cost unknown':(mo===0?'nothing after':`${euro(mo)} a month after`);
+    facts.push(`<div class="fact"><div class="k">Money</div><div class="v">${v}</div><div class="s">${sub}</div></div>`); }
+  if(sh.time){ const [v,s]=timeVal(x); facts.push(`<div class="fact"><div class="k">Your time</div><div class="v">${v}</div><div class="s">${s}${x.setup_time_min?` · ${fmtMin(x.setup_time_min)} to set up`:''}</div></div>`); }
+  if(sh.evidence){
+    let ev='';
+    if(x.status==='evidenced'&&x.g!=null){ ev=`<div class="v">${fmt(x.g)}</div><div class="s">${x.variable}, ${x.k} stud${x.k===1?'y':'ies'}${x.ci&&x.ci[0]!=null?` · 95% ${fmt(x.ci[0])} to ${fmt(x.ci[1])}`:''}</div>`; }
+    else if(x.status==='supported_unquantified') ev=`<div class="v">Studies exist</div><div class="s">numbers not extracted yet</div>`;
+    else if(x.status==='unstudied') ev=`<div class="v">Not studied</div><div class="s">shown because it's cheap to try</div>`;
+    else if(x.status==='no_reliable_effect') ev=`<div class="v">No reliable effect</div><div class="s">the interval includes zero</div>`;
+    else ev=`<div class="v">Nothing found</div><div class="s">we searched; none in favour</div>`;
+    facts.push(`<div class="fact ev"><div class="k">Evidence</div>${ev}</div>`);
+  }
+  return `<div class="rec"><div class="rank">${i+1}</div><div class="name">${x.action}</div>
+    <div class="tags">${tags}</div>
+    ${facts.length?`<div class="facts" style="grid-template-columns:repeat(${facts.length},minmax(0,1fr))">${facts.join('')}</div>`:''}
+    ${sh.why&&x.because&&x.because.length?`<div class="because">Why for you: ${x.because.map(b=>`“${b}”`).join(' and ')}</div>`:''}
+    ${sh.desc&&x.description?desc(x.description):''}</div>`;
+}
 const fmt=v=>(v>0?'+':'')+Number(v).toFixed(2);
 const fmtMin=m=>m==null?'':(m<1?'under a minute':m<60?`${Math.round(m)} min`:`${(m/60).toFixed(1)} h`);
 
@@ -259,7 +324,7 @@ $('#cond').addEventListener('input',e=>{
 });
 function drawChips(){ $('#chips').innerHTML=conditions.map((c,i)=>`<span class="chip">${c}<button aria-label="remove" data-i="${i}">×</button></span>`).join('');
   $('#chips').querySelectorAll('button').forEach(b=>b.onclick=()=>{conditions.splice(+b.dataset.i,1);drawChips();render();}); }
-$('#toggles').addEventListener('change',render);
+document.querySelectorAll('.controls .tog').forEach(b=>b.onclick=()=>{ b.setAttribute('aria-pressed', b.getAttribute('aria-pressed')!=='true'); render(); });
 
 /* chat mode */
 $('#m-click').onclick=()=>mode('click'); $('#m-chat').onclick=()=>mode('chat');
