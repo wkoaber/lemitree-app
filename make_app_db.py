@@ -76,6 +76,42 @@ def check(src, dst):
         ok = ok and same
     return ok
 
+def check_meaning():
+    """Test against what the answers SAY, independent of any reverse flag.
+
+    The earlier scenario tests derived 'the worst answer' from the same
+    reverse flag the engine uses, so an inverted flag passed every test while
+    telling heavy snorers they were fine. These cases pick answers by their
+    LABEL, so an inverted flag now fails loudly.
+    """
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from recommend import load_questionnaire, domain_severity
+    Q = load_questionnaire()
+    byv = {q["primary"]: q for q in Q}
+    def pick(var, words):
+        q = byv[var]
+        labels = q.get("labels") or [q.get("low"), None, None, None, q.get("high")]
+        for i, lab in enumerate(labels):
+            if lab and any(w in lab.lower() for w in words):
+                return q["qid"], i + 1
+        raise SystemExit(f"no label containing {words} on {var}")
+    cases = [  # (description, variable, words in the chosen label, expected referral)
+        ("witnessed apnoeas: 'often'",  "VAR_024", ["often"],        "urgent"),
+        ("witnessed apnoeas: 'never'",  "VAR_024", ["never"],        None),
+        ("snoring: 'every night'",      "VAR_126", ["every night"],  "urgent"),
+        ("snoring: 'never'",            "VAR_126", ["never"],        None),
+        ("daily impact: 'severely'",    "VAR_123", ["severely"],     "urgent"),
+        ("daily impact: 'not at all'",  "VAR_123", ["not at all"],   None),
+    ]
+    ok = True
+    for name, var, words, expect in cases:
+        qid, raw = pick(var, words)
+        got = domain_severity(Q, {qid: raw})["referral"]
+        good = got == expect
+        print(f"  {'correct' if good else 'WRONG':8} {name:32} -> referral={got}")
+        ok = ok and good
+    return ok
+
 def main():
     if len(sys.argv) < 2:
         print(__doc__); sys.exit(1)
@@ -90,6 +126,10 @@ def main():
     print(f"  size {os.path.getsize(src)/1e6:.1f} MB -> {mb:.1f} MB")
     print(f"  paper_effect_link {before} -> {after} rows (audited only)")
     print("checking the website gives the same answers on both databases:")
+    print("checking answers are scored the way their labels read:")
+    if not check_meaning():
+        os.remove(dst)
+        sys.exit("\nFAILED: an answer is scored opposite to its meaning -- check reverse flags. Nothing changed.")
     if not check(src, dst):
         os.remove(dst)
         sys.exit("\nFAILED: results differ -- slim database removed. Nothing changed.")

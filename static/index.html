@@ -3,131 +3,151 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>LemiTree — sleep, on the evidence</title>
+<title>LemiTree — science-powered tactics for better sleep</title>
+<link rel="icon" type="image/png" href="/static/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#EEF2F5; --panel:#FFFFFF; --ink:#1B2A41; --ink-2:#4A5A70; --line:#D5DCE4;
-  --moss:#4A7C59; --moss-soft:#E4EFE7; --amber:#C9873B; --amber-soft:#F6ECDD;
-  --slate:#6B7A8C; --slate-soft:#E8ECF0; --brick:#A63D40; --brick-soft:#F5E3E3;
-  --r:14px; --gap:20px;
+  /* taken from the LemiTree logo: deep navy, luminous blue, pale wordmark blue */
+  --bg:#07101F; --panel:#0C1A2E; --panel-2:#10223A; --line:#1C3050; --ink:#E4EEFA; --ink-2:#8FA6C3;
+  --blue:#4FA3FF; --blue-soft:#12325A; --pale:#C7E3FF;
+  --mint:#4ED3AB; --mint-soft:#0F332C; --amber:#EAAE5F; --amber-soft:#35270F;
+  --slate:#8FA6C3; --slate-soft:#16263D; --coral:#FF8B85; --coral-soft:#3A1719;
+  --r:16px; --gap:20px;
   box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
 }
-@media (prefers-color-scheme:dark){ :root:not([data-theme=light]){
-  --bg:#141B26; --panel:#1C2533; --ink:#E9EEF4; --ink-2:#AAB5C4; --line:#2E3A4B;
-  --moss:#7DB88E; --moss-soft:#22352A; --amber:#E0A55C; --amber-soft:#3A2E1F;
-  --slate:#94A2B3; --slate-soft:#26303C; --brick:#E07C7F; --brick-soft:#3B2223; }}
 *{box-sizing:border-box} html{scroll-padding-top:env(safe-area-inset-top,0px)}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Manrope,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
-a{color:inherit}
-header{max-width:1180px;margin:0 auto;padding:28px var(--gap) 8px;display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:12px}
-.brand{font-weight:800;font-size:22px;letter-spacing:-.01em}
-.brand span{color:var(--moss)}
-.tag{color:var(--ink-2);font-size:14px}
-main{max-width:1180px;margin:0 auto;padding:8px var(--gap) 60px;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:var(--gap);align-items:start}
-@media (max-width:860px){ main{grid-template-columns:1fr} #results{position:static;align-self:auto} #results .panel{max-height:none;overflow:visible}
-  .pill{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);border:0;border-radius:999px;padding:12px 18px;font:inherit;font-weight:700;box-shadow:0 6px 20px rgba(0,0,0,.18);cursor:pointer;z-index:10;white-space:nowrap;max-width:90vw} }
-@media (min-width:861px){ .pill{display:none} }
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:22px}
-h1{font-size:30px;line-height:1.15;letter-spacing:-.02em;margin:0 0 8px;font-weight:800}
-h2{font-size:17px;margin:0 0 4px;font-weight:700}
-.lead{color:var(--ink-2);margin:0 0 18px;max-width:60ch}
+body{margin:0;color:var(--ink);font:16px/1.5 Manrope,system-ui,sans-serif;-webkit-font-smoothing:antialiased;
+  background:var(--bg) radial-gradient(900px 520px at 12% -8%, rgba(79,163,255,.16), transparent 70%) no-repeat;min-height:100vh}
+a{color:var(--pale)}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+
+/* ---------- header: the one bold moment ---------- */
+header{max-width:1220px;margin:0 auto;padding:26px var(--gap) 14px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:14px;text-decoration:none}
+.brand img{width:62px;height:auto;filter:drop-shadow(0 0 14px rgba(79,163,255,.45))}
+.word{font-weight:800;font-size:25px;letter-spacing:.14em;line-height:1;
+  background:linear-gradient(180deg,#E8F4FF,#9FCBFF);-webkit-background-clip:text;background-clip:text;color:transparent}
+.motto{font-size:13px;color:var(--ink-2);margin-top:5px;letter-spacing:.01em}
+.wip{font-size:13px;color:var(--ink-2);border:1px solid var(--line);border-radius:999px;padding:5px 12px}
+
+main{max-width:1220px;margin:0 auto;padding:6px var(--gap) 50px;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:var(--gap);align-items:start}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:24px}
+h1{font-size:31px;line-height:1.15;letter-spacing:-.02em;margin:0 0 10px;font-weight:800}
+h2{font-size:18px;margin:0 0 4px;font-weight:800}
+.lead{color:var(--ink-2);margin:0 0 20px;max-width:58ch}
+
 .modes{display:flex;gap:8px;margin:0 0 18px}
-.modes button{flex:1;padding:10px 12px;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:10px;font:inherit;font-weight:600;cursor:pointer}
-.modes button[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.modes button{flex:1;padding:11px 12px;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:11px;font:inherit;font-weight:700;cursor:pointer}
+.modes button[aria-pressed=true]{background:var(--blue);color:#051126;border-color:var(--blue)}
 .progress{height:6px;background:var(--slate-soft);border-radius:3px;overflow:hidden;margin:0 0 6px}
-.progress i{display:block;height:100%;background:var(--moss);width:0;transition:width .35s ease}
-.progress-label{font-size:13px;color:var(--ink-2);margin-bottom:18px}
-.q{padding:16px 0;border-top:1px solid var(--line)}
-.q:first-of-type{border-top:0}
+.progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--blue),#8FC6FF);transition:width .35s ease}
+.progress-label{font-size:13px;color:var(--ink-2);margin-bottom:16px}
+.settled{background:var(--blue-soft);color:var(--pale);border-radius:12px;padding:12px 14px;font-size:14px;margin:0 0 14px}
+
+/* ---------- questions with a label on every answer ---------- */
+.q{padding:18px 0;border-top:1px solid var(--line)}
+.q:first-of-type{border-top:0;padding-top:4px}
 .q .cat{font-size:12px;color:var(--ink-2);margin-bottom:4px}
-.q .text{font-weight:600;margin-bottom:10px;max-width:62ch}
-.scale{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
-.scale button{padding:10px 4px;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:9px;font:inherit;font-weight:700;cursor:pointer;transition:transform .08s}
-.scale button:hover{border-color:var(--ink)}
-.scale button[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink);transform:scale(1.04)}
-.anchors{display:flex;justify-content:space-between;font-size:12px;color:var(--ink-2);margin-top:6px;gap:10px}
-.anchors span:last-child{text-align:right}
-.settled{background:var(--moss-soft);color:var(--moss);border-radius:10px;padding:12px 14px;font-size:14px;margin:14px 0}
-/* results */
+.q .text{font-weight:700;margin-bottom:12px;max-width:62ch}
+.scale{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.opt{display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 6px 11px;border:1px solid var(--line);background:var(--panel-2);color:var(--ink);border-radius:11px;font:inherit;cursor:pointer;text-align:center;transition:border-color .12s}
+.opt:hover{border-color:var(--blue)}
+.opt b{font-size:17px;line-height:1}
+.opt span{font-size:11.5px;line-height:1.25;color:var(--ink-2)}
+.opt[aria-pressed=true]{background:var(--blue);border-color:var(--blue);color:#051126}
+.opt[aria-pressed=true] span{color:#0B2A52}
+@media (max-width:560px){
+  .scale{grid-template-columns:1fr}
+  .opt{flex-direction:row;justify-content:flex-start;gap:12px;padding:11px 14px;text-align:left}
+  .opt b{width:16px}
+  .opt span{font-size:14px}
+}
+
+/* ---------- results ---------- */
 #results{position:sticky;top:12px;align-self:start}
 #results .panel{max-height:calc(100vh - 24px);overflow:auto}
-.empty{color:var(--ink-2);padding:26px 0;text-align:center}
-.rec{padding:16px 0;border-top:1px solid var(--line);animation:in .3s ease}
-.rec:first-of-type{border-top:0}
-@keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-@media (prefers-reduced-motion:reduce){.rec{animation:none}.progress i,.scale button{transition:none}}
-.rec .rank{color:var(--ink-2);font-size:13px;font-weight:600}
-.rec .name{font-weight:700;font-size:17px;margin:2px 0 6px;line-height:1.3}
-.tier{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px}
-.tier::before{content:"";width:8px;height:8px;border-radius:50%}
-.tier.evidenced{background:var(--moss-soft);color:var(--moss)}.tier.evidenced::before{background:var(--moss)}
-.tier.supported{background:var(--amber-soft);color:var(--amber)}.tier.supported::before{border:2px solid var(--amber)}
-.tier.unstudied{background:var(--slate-soft);color:var(--slate)}.tier.unstudied::before{border:2px dashed var(--slate)}
-.tier.none{background:var(--slate-soft);color:var(--slate)}.tier.none::before{background:var(--slate)}
-.meta{font-size:13px;color:var(--ink-2);margin-top:6px;line-height:1.45}
-.meta b{color:var(--ink);font-weight:600}
-.because{font-size:13px;margin-top:6px;color:var(--ink-2)}
-.desc{font-size:14px;margin-top:8px;color:var(--ink);max-width:60ch}
-.more{border:0;background:none;color:var(--moss);font:inherit;font-weight:700;cursor:pointer;padding:0}
-.referral{background:var(--brick-soft);border:1px solid var(--brick);border-radius:12px;padding:16px;margin-bottom:16px}
-.referral h2{color:var(--brick)}
-.referral ul{margin:8px 0 0 18px;padding:0;font-size:14px}
-/* results controls */
-.controls{border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:14px 0 4px;padding:12px 0;display:grid;gap:12px}
+.controls{border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:14px 0 4px;padding:13px 0;display:grid;gap:12px}
 .ctl-label{font-size:12px;color:var(--ink-2);margin-bottom:6px}
 .chipset{display:flex;flex-wrap:wrap;gap:6px}
-.tog{border:1px solid var(--line);background:transparent;color:var(--ink-2);border-radius:999px;padding:5px 11px;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
-.tog[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-.show summary{font-size:13px;color:var(--ink-2);font-weight:600}
-.show .chipset{margin-top:8px}
-.controls details{margin:0;border:0;padding:0}
-/* cards */
-.tags{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 12px}
-.tag{font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;border:1px solid transparent}
-.tag.sci{background:var(--moss-soft);color:var(--moss)}
-.tag.one{background:var(--ink);color:var(--bg)}
-.tag.quick{background:var(--amber-soft);color:var(--amber)}
-.facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin:4px 0 10px}
-.fact{background:var(--panel);padding:9px 11px}
+.tog{border:1px solid var(--line);background:transparent;color:var(--ink-2);border-radius:999px;padding:5px 11px;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.tog:hover{border-color:var(--blue);color:var(--ink)}
+.tog[aria-pressed=true]{background:var(--pale);color:#071A33;border-color:var(--pale)}
+.controls details summary{font-size:13px;color:var(--ink-2);font-weight:700;cursor:pointer}
+.controls details .chipset{margin-top:8px}
+
+.empty{color:var(--ink-2);padding:26px 4px;text-align:center}
+.rec{padding:18px 0;border-top:1px solid var(--line);animation:in .3s ease}
+.rec:first-of-type{border-top:0}
+@keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.rec{animation:none}.progress i{transition:none}}
+.rank{color:var(--ink-2);font-size:13px;font-weight:700}
+.name{font-weight:800;font-size:17px;margin:2px 0 8px;line-height:1.3}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}
+.tier,.tag{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:800;padding:3px 10px;border-radius:999px;border:1px solid transparent}
+.tier::before{content:"";width:8px;height:8px;border-radius:50%}
+.tier.evidenced{background:var(--mint-soft);color:var(--mint)}.tier.evidenced::before{background:var(--mint)}
+.tier.supported{background:var(--amber-soft);color:var(--amber)}.tier.supported::before{border:2px solid var(--amber)}
+.tier.unstudied,.tier.none{background:var(--slate-soft);color:var(--slate)}.tier.unstudied::before{border:2px dashed var(--slate)}.tier.none::before{background:var(--slate)}
+.tag.one{background:var(--blue);color:#051126}
+.tag.habit{border-color:var(--blue);color:var(--pale)}
+.tag.quick{background:var(--blue-soft);color:var(--pale)}
+.facts{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:0 0 10px}
+.fact{background:var(--panel-2);padding:10px 12px}
 .fact .k{font-size:11px;color:var(--ink-2);margin-bottom:2px}
-.fact .v{font-size:14px;font-weight:700;line-height:1.3}
-.fact .s{font-size:12px;color:var(--ink-2);margin-top:1px}
-@media (max-width:480px){.facts{grid-template-columns:1fr 1fr}.fact.ev{grid-column:1/-1}}
-/* controls */
-details{margin-top:18px;border-top:1px solid var(--line);padding-top:12px}
-summary{cursor:pointer;font-weight:600;font-size:14px}
-.toggles{display:grid;gap:8px;margin-top:10px;font-size:14px}
-.toggles label{display:flex;gap:10px;align-items:flex-start}
-.toggles small{display:block;color:var(--ink-2)}
-.cond input{width:100%;padding:10px;border:1px solid var(--line);border-radius:9px;font:inherit;background:transparent;color:var(--ink);margin-top:8px}
+.fact .v{font-size:14.5px;font-weight:800;line-height:1.3}
+.fact .s{font-size:12px;color:var(--ink-2);margin-top:2px;line-height:1.35}
+.because{font-size:13px;color:var(--ink-2);margin:4px 0 0}
+.desc{font-size:14px;margin-top:8px;color:var(--ink);max-width:62ch}
+.more{border:0;background:none;color:var(--blue);font:inherit;font-weight:800;cursor:pointer;padding:0}
+.referral{background:var(--coral-soft);border:1px solid var(--coral);border-radius:14px;padding:16px;margin:14px 0}
+.referral h2{color:var(--coral)}
+.referral p{margin:6px 0 0;font-size:14px}
+.referral ul{margin:8px 0 0 18px;padding:0;font-size:14px}
+.sev{font-size:13px;color:var(--ink-2);margin-top:2px}
+.sev b{color:var(--ink)}
+
+/* conditions & chat */
+details.cond{margin-top:20px;border-top:1px solid var(--line);padding-top:14px}
+details.cond summary{cursor:pointer;font-weight:700;font-size:14px}
+#sugg{position:relative}
+#cond{width:100%;padding:11px;border:1px solid var(--line);border-radius:10px;font:inherit;background:var(--panel-2);color:var(--ink);margin-top:10px}
+#sugglist{position:absolute;z-index:5;left:0;right:0;list-style:none;margin:4px 0 0;padding:4px;background:var(--panel-2);border:1px solid var(--line);border-radius:10px;max-height:220px;overflow:auto}
+#sugglist li{padding:7px 9px;border-radius:7px;cursor:pointer;font-size:14px}#sugglist li:hover{background:var(--slate-soft)}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .chip{background:var(--slate-soft);border-radius:999px;padding:4px 10px;font-size:13px;display:inline-flex;gap:6px;align-items:center}
 .chip button{border:0;background:none;cursor:pointer;color:var(--ink-2);font-size:15px;padding:0}
-#sugg{position:relative}
-#sugg ul{position:absolute;z-index:5;left:0;right:0;list-style:none;margin:4px 0 0;padding:4px;background:var(--panel);border:1px solid var(--line);border-radius:9px;max-height:200px;overflow:auto}
-#sugg li{padding:6px 8px;border-radius:6px;cursor:pointer;font-size:14px}#sugg li:hover{background:var(--slate-soft)}
-/* chat */
 #chat{display:none}
 .thread{display:flex;flex-direction:column;gap:10px;max-height:52vh;overflow:auto;padding:4px 2px}
-.msg{padding:10px 14px;border-radius:12px;max-width:85%;font-size:15px;line-height:1.45}
-.msg.bot{background:var(--slate-soft);align-self:flex-start;border-bottom-left-radius:4px}
-.msg.me{background:var(--ink);color:var(--bg);align-self:flex-end;border-bottom-right-radius:4px}
-.confirm{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--ink-2);margin-top:6px}
-.confirm button{padding:5px 10px;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:8px;font:inherit;cursor:pointer;font-weight:600}
-.confirm button.on{background:var(--moss);color:#fff;border-color:var(--moss)}
+.msg{padding:10px 14px;border-radius:13px;max-width:86%;font-size:15px;line-height:1.45}
+.msg.bot{background:var(--panel-2);border:1px solid var(--line);align-self:flex-start;border-bottom-left-radius:4px}
+.msg.me{background:var(--blue);color:#051126;align-self:flex-end;border-bottom-right-radius:4px}
+.confirm{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--ink-2);margin-top:8px}
+.confirm button{padding:5px 10px;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:8px;font:inherit;cursor:pointer;font-weight:700}
+.confirm button.on{background:var(--blue);color:#051126;border-color:var(--blue)}
 .composer{display:flex;gap:8px;margin-top:12px}
-.composer input{flex:1;padding:12px;border:1px solid var(--line);border-radius:10px;font:inherit;background:transparent;color:var(--ink)}
-.composer button{padding:12px 18px;border:0;background:var(--ink);color:var(--bg);border-radius:10px;font:inherit;font-weight:700;cursor:pointer}
-footer{max-width:1180px;margin:0 auto;padding:0 var(--gap) 40px;color:var(--ink-2);font-size:13px;max-width:78ch}
-:focus-visible{outline:3px solid var(--moss);outline-offset:2px}
+.composer input{flex:1;padding:12px;border:1px solid var(--line);border-radius:11px;font:inherit;background:var(--panel-2);color:var(--ink)}
+.composer button{padding:12px 18px;border:0;background:var(--blue);color:#051126;border-radius:11px;font:inherit;font-weight:800;cursor:pointer}
+
+footer{max-width:1220px;margin:0 auto;padding:0 var(--gap) 44px;color:var(--ink-2);font-size:13px}
+footer p{max-width:78ch}
+@media (max-width:900px){
+  main{grid-template-columns:1fr}
+  #results{position:static}#results .panel{max-height:none;overflow:visible}
+  .pill{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--blue);color:#051126;border:0;border-radius:999px;padding:12px 18px;font:inherit;font-weight:800;box-shadow:0 8px 26px rgba(0,0,0,.45);cursor:pointer;z-index:10;white-space:nowrap;max-width:92vw}
+}
+@media (min-width:901px){.pill{display:none}}
+@media (max-width:480px){h1{font-size:26px}.word{font-size:21px}.brand img{width:44px}.wip{display:none}}
 </style>
 </head>
 <body>
 <header>
-  <div class="brand">Lemi<span>Tree</span></div>
-  <div class="tag">Sleep, on the evidence · work in progress</div>
+  <a class="brand" href="/" aria-label="LemiTree home">
+    <img src="/static/logo-mark.png" alt="">
+    <div><div class="word">LEMITREE</div><div class="motto">Science-powered tactics for a flourishing life.</div></div>
+  </a>
+  <div class="wip">Sleep · work in progress</div>
 </header>
 
 <main>
@@ -151,32 +171,28 @@ footer{max-width:1180px;margin:0 auto;padding:0 var(--gap) 40px;color:var(--ink-
       </div>
     </div>
 
-    <details>
+    <details class="cond">
       <summary>Health conditions (so we can hide anything unsafe for you)</summary>
-      <div class="cond" id="sugg">
-        <input id="cond" placeholder="Start typing a condition…" autocomplete="off">
-        <ul id="sugglist" hidden></ul>
-      </div>
+      <div id="sugg"><input id="cond" placeholder="Start typing a condition…" autocomplete="off"><ul id="sugglist" hidden></ul></div>
       <div class="chips" id="chips"></div>
     </details>
-
-
   </section>
 
   <aside id="results">
     <div class="panel">
-      <h2 id="rtitle">Your recommendations</h2>
-      <div id="sev" class="meta"></div>
+      <h2>Your recommendations</h2>
+      <div id="sev" class="sev"></div>
       <div class="controls">
-        <div class="ctl">
+        <div>
           <div class="ctl-label">Show only</div>
           <div class="chipset" id="f-tags">
             <button class="tog" data-tag="science_backed" aria-pressed="false">Science-backed</button>
             <button class="tog" data-tag="one_timer" aria-pressed="false">One-timers</button>
+            <button class="tog" data-tag="zero_time_habit" aria-pressed="false">Zero-time habits</button>
             <button class="tog" data-tag="quick_win" aria-pressed="false">Quick wins</button>
           </div>
         </div>
-        <div class="ctl">
+        <div>
           <div class="ctl-label">Evidence to include</div>
           <div class="chipset" id="toggles">
             <button class="tog" data-status="evidenced" aria-pressed="true">Science-backed</button>
@@ -186,7 +202,7 @@ footer{max-width:1180px;margin:0 auto;padding:0 var(--gap) 40px;color:var(--ink-
             <button class="tog" data-status="searched_unsupported" aria-pressed="false">Searched, unsupported</button>
           </div>
         </div>
-        <details class="show">
+        <details>
           <summary>What each card shows</summary>
           <div class="chipset" id="f-show">
             <button class="tog" data-show="cost" aria-pressed="true">Money</button>
@@ -202,7 +218,7 @@ footer{max-width:1180px;margin:0 auto;padding:0 var(--gap) 40px;color:var(--ink-
   </aside>
 </main>
 
-<button class="pill" id="pill" hidden>See your recommendations ↓</button>
+<button class="pill" id="pill" hidden></button>
 <footer>
   <p><b>Please read.</b> LemiTree offers educational information, not medical advice. It does not diagnose or treat anything. Evidence labels describe published research, not a prediction about you. Our safety filter can only act on conditions you tell us about. Persistent sleep problems deserve a doctor — chronic insomnia and sleep apnoea are medical conditions and are treatable.</p>
   <p>Every recommendation traces back to audited scientific papers. Where the evidence is thin, we say so rather than pretend.</p>
@@ -210,98 +226,106 @@ footer{max-width:1180px;margin:0 auto;padding:0 var(--gap) 40px;color:var(--ink-
 
 <script>
 const $=s=>document.querySelector(s);
-let Q=[], answers={}, conditions=[], lastTop=null, stableCount=0, chatIdx=0, chatHist=[], pendingScore=null;
+let Q=[], answers={}, conditions=[];
+let lastTop=null, stableAnswers=0, lastAnswered=0;     // stability is counted per NEW answer only
+let chatIdx=0, chatHist=[];
 
 async function init(){
   Q=await (await fetch('/api/questions')).json();
   const qs=$('#questions');
-  Q.forEach((q,i)=>{
+  Q.forEach(q=>{
+    const labels=q.labels||[q.low,'','','',q.high];
     const d=document.createElement('div'); d.className='q'; d.dataset.qid=q.qid;
     d.innerHTML=`<div class="cat">${q.category}</div><div class="text">${q.text}</div>
-      <div class="scale" role="group" aria-label="${q.text}">${[1,2,3,4,5].map(n=>`<button aria-pressed="false" data-n="${n}">${n}</button>`).join('')}</div>
-      <div class="anchors"><span>${q.low||''}</span><span>${q.high||''}</span></div>`;
-    d.querySelectorAll('.scale button').forEach(b=>b.onclick=()=>setAnswer(q.qid,+b.dataset.n,d));
+      <div class="scale" role="radiogroup" aria-label="${q.text}">
+        ${[1,2,3,4,5].map(n=>`<button class="opt" role="radio" aria-pressed="false" aria-checked="false" data-n="${n}"><b>${n}</b><span>${labels[n-1]||''}</span></button>`).join('')}
+      </div>`;
+    d.querySelectorAll('.opt').forEach(b=>b.onclick=()=>setAnswer(q.qid,+b.dataset.n,d));
     qs.appendChild(d);
   });
-  // anchors come from the API? no — fetch them via questions endpoint fallback
-  render();
 }
 function setAnswer(qid,n,el){
   answers[qid]=n;
-  (el||document.querySelector(`.q[data-qid="${qid}"]`)).querySelectorAll('.scale button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.n===n));
+  (el||document.querySelector(`.q[data-qid="${qid}"]`)).querySelectorAll('.opt').forEach(b=>{
+    const on=+b.dataset.n===n; b.setAttribute('aria-pressed',on); b.setAttribute('aria-checked',on); });
   render();
 }
-function statuses(){return [...document.querySelectorAll('#toggles .tog[aria-pressed=true]')].map(b=>b.dataset.status)}
-function onlyTags(){return [...document.querySelectorAll('#f-tags .tog[aria-pressed=true]')].map(b=>b.dataset.tag)}
+const pressed=sel=>[...document.querySelectorAll(sel+' .tog[aria-pressed=true]')];
+const statuses=()=>pressed('#toggles').map(b=>b.dataset.status);
+const onlyTags=()=>pressed('#f-tags').map(b=>b.dataset.tag);
+const SHOW=()=>Object.fromEntries([...document.querySelectorAll('#f-show .tog')].map(b=>[b.dataset.show,b.getAttribute('aria-pressed')==='true']));
+
 async function render(){
   const answered=Object.keys(answers).length;
   $('#bar').style.width=(answered/Q.length*100)+'%';
   $('#plabel').textContent=`${answered} of ${Q.length} answered`;
-  if(!answered){ $('#rbody').innerHTML='<div class="empty">Answer a question and they\'ll appear here.</div>'; $('#sev').textContent=''; return; }
+  if(!answered){ $('#rbody').innerHTML='<div class="empty">Answer a question and they\'ll appear here.</div>'; $('#sev').textContent=''; $('#pill').hidden=true; return; }
   const r=await (await fetch('/api/recommend',{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({answers,conditions,statuses:statuses(),only_tags:onlyTags(),top_n:5})})).json();
-  // severity line
-  const s=r.severity; let sevtxt='';
-  if(s&&s.severity!=null&&s.band){ const names={thriving:'doing well',okay:'okay',struggling:'struggling',suffering:'having a hard time'}; sevtxt=`Overall you seem to be <b>${names[s.band]||s.band}</b> on sleep (${s.severity>0?'+':''}${s.severity} on −10…+10).`; }
-  $('#sev').innerHTML=sevtxt;
+  const s=r.severity;
+  const names={thriving:'doing well',okay:'okay',struggling:'struggling',suffering:'having a hard time'};
+  $('#sev').innerHTML = s&&s.band ? `Overall you seem to be <b>${names[s.band]||s.band}</b> on sleep (${s.severity>0?'+':''}${s.severity} on −10…+10).` : '';
   let html='';
   if(r.lead_with_referral){
-    html+=`<div class="referral"><h2>${r.suppress_actions?'Please talk to a doctor first':'Worth talking to a doctor'}</h2><p style="margin:6px 0 0;font-size:14px">${r.referral_message}</p>`;
+    html+=`<div class="referral"><h2>${r.suppress_actions?'Please talk to a doctor first':'Worth talking to a doctor'}</h2><p>${r.referral_message}</p>`;
     if(s.red_flags&&s.red_flags.length) html+=`<ul>${s.red_flags.map(f=>`<li>${f}</li>`).join('')}</ul>`;
-    html+=`</div>`;
+    html+='</div>';
   }
   if(r.suppress_actions){
     html+=`<div class="empty">We're not showing self-help actions here on purpose — the right next step is a clinician.</div>`;
   } else if(!r.recommendations.length){
     html+= onlyTags().length
-      ? `<div class="empty">No recommendation matches that filter for your answers. Try switching it off, or including more kinds of evidence.</div>`
+      ? `<div class="empty">Nothing matches that filter for your answers. Switch it off, or include more kinds of evidence.</div>`
       : `<div class="empty">Nothing to recommend yet for what you've answered — that can be a good sign.</div>`;
   } else {
-    if(r.lead_with_referral) html+=`<div class="meta" style="margin-bottom:8px">These may still help, but they're secondary to seeing a doctor.</div>`;
+    if(r.lead_with_referral) html+=`<div class="because" style="margin-bottom:6px">These may still help, but they're secondary to seeing a doctor.</div>`;
     r.recommendations.forEach((x,i)=>{ html+=card(x,i); });
   }
   $('#rbody').innerHTML=html;
-  const pill=$('#pill'); pill.hidden=!(r.recommendations.length||r.lead_with_referral); pill.textContent=r.lead_with_referral?'See what we recommend ↓':`See your ${r.recommendations.length} recommendation${r.recommendations.length===1?'':'s'} ↓`;
-  // stability signal
+
+  // stability: count only when a NEW answer arrives, never on filter or toggle clicks
   const top=r.recommendations.slice(0,5).map(x=>x.abiz).join('|');
-  stableCount = top===lastTop ? stableCount+1 : 0; lastTop=top;
-  const left=Q.length-answered; const st=$('#settled');
-  if(stableCount>=3&&left>0&&!r.suppress_actions){ st.hidden=false; st.textContent=`Your top recommendations haven't changed for the last ${stableCount} answers. ${left} question${left>1?'s':''} left if you want more precision — or stop here.`; }
+  if(answered>lastAnswered){ stableAnswers = (top===lastTop) ? stableAnswers+1 : 0; lastTop=top; }
+  lastAnswered=answered;
+  const left=Q.length-answered, st=$('#settled');
+  if(stableAnswers>=3&&left>0&&!r.suppress_actions){ st.hidden=false; st.textContent=`Your top recommendations haven't changed over your last ${stableAnswers} answers. ${left} question${left>1?'s':''} left if you want more precision — or stop here.`; }
   else st.hidden=true;
+
+  const pill=$('#pill'); const n=r.recommendations.length;
+  pill.hidden=!(n||r.lead_with_referral);
+  pill.textContent=r.lead_with_referral?'See what we recommend ↓':`See your ${n} recommendation${n===1?'':'s'} ↓`;
 }
-function desc(t){ if(t.length<=220) return `<div class="desc">${t}</div>`;
-  const cut=t.slice(0,220).replace(/\s+\S*$/,'');
-  return `<div class="desc"><span class="short">${cut}… <button class="more">more</button></span><span class="long" hidden>${t} <button class="more">less</button></span></div>`; }
-document.addEventListener('click',e=>{ if(!e.target.classList.contains('more')) return; const d=e.target.closest('.desc'); d.querySelector('.short').hidden=!d.querySelector('.short').hidden; d.querySelector('.long').hidden=!d.querySelector('.long').hidden; });
+
 const TIER={evidenced:['Science-backed','evidenced'],supported_unquantified:['Studied, not yet measured','supported'],
   unstudied:['Unstudied','unstudied'],no_reliable_effect:['No reliable effect','none'],searched_unsupported:['Searched, unsupported','none']};
-const SHOW=()=>Object.fromEntries([...document.querySelectorAll('#f-show .tog')].map(b=>[b.dataset.show,b.getAttribute('aria-pressed')==='true']));
-const euro=v=>v==null?'—':(v===0?'free':(v<1?'< €1':`€${Math.round(v)}`));
-function timeVal(x){ const m=x.dedicated_min_per_day;
-  if(x.tags&&x.tags.one_timer) return ['none','after setup'];
-  if(m==null) return ['—','frequency unknown'];
-  return [m<1?'< 1 min':`${Math.round(m)} min`, x.attention_mode==='embedded'?'a day, alongside what you do':'a day'];
+const euro=v=>v==null?'—':(v<1?'< €1':`€${Math.round(v)}`);
+const fmt=v=>(v>0?'+':'')+Number(v).toFixed(2);
+const fmtMin=m=>m==null?'':(m<1?'under a minute':m<60?`${Math.round(m)} min`:`${(m/60).toFixed(1)} h`);
+function timeFact(x){
+  const t=x.tags||{}, m=x.dedicated_min_per_day, setup=x.setup_time_min?` · ${fmtMin(x.setup_time_min)} to set up`:'';
+  if(t.one_timer) return ['None after setup',`works without you${setup}`];
+  if(t.zero_time_habit) return ['No extra time',`a rule you keep each day${setup}`];
+  if(m==null) return ['—','frequency not recorded'];
+  return [m<1?'Under 1 min':`${Math.round(m)} min`, (x.attention_mode==='embedded'?'a day, alongside what you do':'a day')+setup];
 }
 function card(x,i){
-  const sh=SHOW(); const [tierTxt,tierCls]=TIER[x.status]||[x.status,'none'];
-  const t=x.tags||{};
+  const sh=SHOW(), t=x.tags||{}, [tierTxt,tierCls]=TIER[x.status]||[x.status,'none'];
   let tags=`<span class="tier ${tierCls}">${tierTxt}</span>`;
   if(t.one_timer) tags+=`<span class="tag one">One-timer</span>`;
+  if(t.zero_time_habit) tags+=`<span class="tag habit">Zero-time habit</span>`;
   if(t.quick_win) tags+=`<span class="tag quick">Quick win</span>`;
   const facts=[];
   if(sh.cost){ const su=x.setup_cost_eur, mo=x.cost_eur_per_month;
-    const v = su==null?'—':(su===0?'Free':`${euro(su)} once`);
-    const sub = mo==null?'ongoing cost unknown':(mo===0?'nothing after':`${euro(mo)} a month after`);
-    facts.push(`<div class="fact"><div class="k">Money</div><div class="v">${v}</div><div class="s">${sub}</div></div>`); }
-  if(sh.time){ const [v,s]=timeVal(x); facts.push(`<div class="fact"><div class="k">Your time</div><div class="v">${v}</div><div class="s">${s}${x.setup_time_min?` · ${fmtMin(x.setup_time_min)} to set up`:''}</div></div>`); }
+    facts.push(`<div class="fact"><div class="k">Money</div><div class="v">${su==null?'—':(su===0?'Free':`${euro(su)} once`)}</div><div class="s">${mo==null?'ongoing cost unknown':(mo===0?'nothing after':`${euro(mo)} a month after`)}</div></div>`); }
+  if(sh.time){ const [v,s]=timeFact(x); facts.push(`<div class="fact"><div class="k">Your time</div><div class="v">${v}</div><div class="s">${s}</div></div>`); }
   if(sh.evidence){
-    let ev='';
-    if(x.status==='evidenced'&&x.g!=null){ ev=`<div class="v">${fmt(x.g)}</div><div class="s">${x.variable}, ${x.k} stud${x.k===1?'y':'ies'}${x.ci&&x.ci[0]!=null?` · 95% ${fmt(x.ci[0])} to ${fmt(x.ci[1])}`:''}</div>`; }
-    else if(x.status==='supported_unquantified') ev=`<div class="v">Studies exist</div><div class="s">numbers not extracted yet</div>`;
-    else if(x.status==='unstudied') ev=`<div class="v">Not studied</div><div class="s">shown because it's cheap to try</div>`;
-    else if(x.status==='no_reliable_effect') ev=`<div class="v">No reliable effect</div><div class="s">the interval includes zero</div>`;
-    else ev=`<div class="v">Nothing found</div><div class="s">we searched; none in favour</div>`;
-    facts.push(`<div class="fact ev"><div class="k">Evidence</div>${ev}</div>`);
+    let v,s;
+    if(x.status==='evidenced'&&x.g!=null){ v=fmt(x.g); s=`${x.variable}, ${x.k} stud${x.k===1?'y':'ies'}${x.ci&&x.ci[0]!=null?` · 95% ${fmt(x.ci[0])} to ${fmt(x.ci[1])}`:''}`; }
+    else if(x.status==='supported_unquantified'){ v='Studies exist'; s='numbers not extracted yet'; }
+    else if(x.status==='unstudied'){ v='Not studied'; s="shown because it's cheap to try"; }
+    else if(x.status==='no_reliable_effect'){ v='No reliable effect'; s='the interval includes zero'; }
+    else { v='Nothing found'; s='we searched; none in favour'; }
+    facts.push(`<div class="fact"><div class="k">Evidence</div><div class="v">${v}</div><div class="s">${s}</div></div>`);
   }
   return `<div class="rec"><div class="rank">${i+1}</div><div class="name">${x.action}</div>
     <div class="tags">${tags}</div>
@@ -309,47 +333,51 @@ function card(x,i){
     ${sh.why&&x.because&&x.because.length?`<div class="because">Why for you: ${x.because.map(b=>`“${b}”`).join(' and ')}</div>`:''}
     ${sh.desc&&x.description?desc(x.description):''}</div>`;
 }
-const fmt=v=>(v>0?'+':'')+Number(v).toFixed(2);
-const fmtMin=m=>m==null?'':(m<1?'under a minute':m<60?`${Math.round(m)} min`:`${(m/60).toFixed(1)} h`);
+function desc(t){ if(t.length<=220) return `<div class="desc">${t}</div>`;
+  const cut=t.slice(0,220).replace(/\s+\S*$/,'');
+  return `<div class="desc"><span class="short">${cut}… <button class="more">more</button></span><span class="long" hidden>${t} <button class="more">less</button></span></div>`; }
+document.addEventListener('click',e=>{ if(!e.target.classList.contains('more')) return;
+  const d=e.target.closest('.desc'); d.querySelector('.short').hidden=!d.querySelector('.short').hidden; d.querySelector('.long').hidden=!d.querySelector('.long').hidden; });
+document.querySelectorAll('.controls .tog').forEach(b=>b.onclick=()=>{ b.setAttribute('aria-pressed', b.getAttribute('aria-pressed')!=='true'); render(); });
 
-/* conditions picker */
-let ALLC=[];
-fetch('/api/conditions').then(r=>r.json()).then(l=>ALLC=l);
+/* health conditions */
+let ALLC=[]; fetch('/api/conditions').then(r=>r.json()).then(l=>ALLC=l);
 $('#cond').addEventListener('input',e=>{
-  const v=e.target.value.trim().toLowerCase(); const ul=$('#sugglist');
+  const v=e.target.value.trim().toLowerCase(), ul=$('#sugglist');
   if(v.length<2){ul.hidden=true;return}
   const hits=ALLC.filter(c=>c.toLowerCase().includes(v)&&!conditions.includes(c)).slice(0,8);
   ul.innerHTML=hits.map(h=>`<li>${h}</li>`).join(''); ul.hidden=!hits.length;
   ul.querySelectorAll('li').forEach(li=>li.onclick=()=>{conditions.push(li.textContent);e.target.value='';ul.hidden=true;drawChips();render();});
 });
-function drawChips(){ $('#chips').innerHTML=conditions.map((c,i)=>`<span class="chip">${c}<button aria-label="remove" data-i="${i}">×</button></span>`).join('');
+function drawChips(){ $('#chips').innerHTML=conditions.map((c,i)=>`<span class="chip">${c}<button aria-label="remove ${c}" data-i="${i}">×</button></span>`).join('');
   $('#chips').querySelectorAll('button').forEach(b=>b.onclick=()=>{conditions.splice(+b.dataset.i,1);drawChips();render();}); }
-document.querySelectorAll('.controls .tog').forEach(b=>b.onclick=()=>{ b.setAttribute('aria-pressed', b.getAttribute('aria-pressed')!=='true'); render(); });
 
 /* chat mode */
 $('#m-click').onclick=()=>mode('click'); $('#m-chat').onclick=()=>mode('chat');
 function mode(m){ $('#m-click').setAttribute('aria-pressed',m==='click'); $('#m-chat').setAttribute('aria-pressed',m==='chat');
   $('#questions').style.display=m==='click'?'':'none'; $('#chat').style.display=m==='chat'?'block':'none';
   if(m==='chat'&&!chatHist.length) askNext(); }
-function nextUnanswered(){ return Q.findIndex(q=>!(q.qid in answers)); }
-async function askNext(){ chatIdx=nextUnanswered(); if(chatIdx<0){ bot("That's every question. Your recommendations are on the right."); return; } await chat(null); }
-function bot(t,confirmScore){ const d=document.createElement('div'); d.className='msg bot'; d.textContent=t;
-  if(confirmScore){ const c=document.createElement('div'); c.className='confirm'; c.innerHTML='Recorded as: '+[1,2,3,4,5].map(n=>`<button data-n="${n}" class="${n===confirmScore?'on':''}">${n}</button>`).join('')+' <span>— tap to correct</span>';
-    c.querySelectorAll('button').forEach(b=>b.onclick=()=>{c.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');setAnswer(Q[chatIdx].qid,+b.dataset.n);});
-    d.appendChild(c);} $('#thread').appendChild(d); $('#thread').scrollTop=1e9; }
+const nextUnanswered=()=>Q.findIndex(q=>!(q.qid in answers));
+async function askNext(){ chatIdx=nextUnanswered(); if(chatIdx<0){ bot("That's every question. Your recommendations are ready."); return; } await chat(null); }
+function bot(t,score){ const d=document.createElement('div'); d.className='msg bot'; d.textContent=t;
+  if(score){ const q=Q[chatIdx], L=q.labels||[];
+    const c=document.createElement('div'); c.className='confirm';
+    c.innerHTML='Recorded as: '+[1,2,3,4,5].map(n=>`<button data-n="${n}" class="${n===score?'on':''}" title="${L[n-1]||''}">${n}</button>`).join('')+` <span>${L[score-1]?`“${L[score-1]}”`:''} — tap to correct</span>`;
+    c.querySelectorAll('button').forEach(b=>b.onclick=()=>{c.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');setAnswer(q.qid,+b.dataset.n);});
+    d.appendChild(c); }
+  $('#thread').appendChild(d); $('#thread').scrollTop=1e9; }
 function me(t){ const d=document.createElement('div'); d.className='msg me'; d.textContent=t; $('#thread').appendChild(d); $('#thread').scrollTop=1e9; }
 async function chat(userText){
   if(userText){ me(userText); chatHist.push({role:'user',content:userText}); }
-  const r=await (await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({messages:chatHist,current_qid:Q[chatIdx]?.qid})})).json();
-  if(r.detail){ bot('Chat isn\'t available right now: '+r.detail); return; }
+  const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:chatHist,current_qid:Q[chatIdx]?.qid})});
+  const r=await res.json();
+  if(!res.ok){ bot("Chat isn't available right now — you can still answer by clicking."); return; }
   chatHist.push({role:'assistant',content:r.reply});
   if(r.score){ setAnswer(Q[chatIdx].qid,r.score); bot(r.reply,r.score); chatHist=[]; setTimeout(askNext,600); }
   else bot(r.reply);
 }
 $('#send').onclick=()=>{const v=$('#say').value.trim(); if(!v)return; $('#say').value=''; chat(v);};
 $('#say').addEventListener('keydown',e=>{if(e.key==='Enter')$('#send').click();});
-
 $('#pill').onclick=()=>$('#results').scrollIntoView({behavior:'smooth'});
 init();
 </script>

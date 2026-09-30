@@ -43,7 +43,8 @@ def health():
 def questions():
     return [{"qid": q["qid"], "text": q["text"], "category": q["category"],
              "reverse": q["reverse"], "primary": q["primary"],
-             "low": q.get("low"), "high": q.get("high")} for q in QUESTIONS]
+             "low": q.get("low"), "high": q.get("high"), "labels": q.get("labels"),
+             "anchors": q.get("anchors")} for q in QUESTIONS]
 
 
 @app.get("/api/conditions")
@@ -68,6 +69,11 @@ class RecommendIn(BaseModel):
 FREQ_PER_DAY = {"per_day": 1.0, "per_night": 1.0, "per_week": 1/7,
                 "per_month": 1/30, "per_year": 1/365}
 QUICK_WIN_MIN_PER_DAY = 2.0   # a quick win takes under two minutes of dedicated time a day
+# One-timer classes: act once, then it works WITHOUT you (no recurring effort).
+ONE_TIME_CLASSES = {"elimination", "automation", "delegation", "optimisation",
+                    "environment_design", "durable", "knowledge_acquisition"}
+# Habit classes: may cost no minutes, but you must keep choosing them.
+HABIT_CLASSES = {"habit_formation", "recurring"}
 
 
 def _mid(lo, hi):
@@ -80,8 +86,13 @@ def _enrich(recs):
 
     Tags (definitions set by LemiTree):
       science_backed  a measured effect with a reliable interval ('evidenced')
-      one_timer       no recurring dedicated time at all -- do it once, done
-      quick_win       under two minutes of dedicated time per day
+      one_timer       done ONCE and it keeps working with nothing further to do:
+                      its class is not a habit, and it needs no recurring time.
+                      Zero time is not enough -- 'go to bed at the same time
+                      every night' takes no time but must be kept up daily.
+      quick_win       a recurring action taking under two minutes of dedicated
+                      time a day -- zero included, so a no-time daily habit
+                      counts here rather than as a one-timer.
     An action with dedicated time but no recorded frequency gets NO time tag:
     its per-day cost is unknown, and guessing would mislabel it.
     """
@@ -114,10 +125,15 @@ def _enrich(recs):
                                       else (ded * freq if (ded is not None and freq) else None))
         r["cost_eur_per_month"] = (maint_cost * freq * 30) if (maint_cost is not None and freq) else (0.0 if maint_cost == 0 else None)
         mpd = r["dedicated_min_per_day"]
+        cls = r["one_timer_class"]
+        is_habit = cls in (None, "", "habit_formation", "recurring")
+        no_time = ded is not None and ded < 0.01
+        one_timer = no_time and not is_habit
+        r["recurring"] = not one_timer          # lets the page say "but daily"
         r["tags"] = {
             "science_backed": r["status"] == "evidenced",
-            "one_timer": ded is not None and ded < 0.01,
-            "quick_win": mpd is not None and 0 < mpd < QUICK_WIN_MIN_PER_DAY,
+            "one_timer": one_timer,
+            "quick_win": (not one_timer) and mpd is not None and mpd < QUICK_WIN_MIN_PER_DAY,
         }
     con.close()
     return recs
@@ -139,7 +155,7 @@ def api_recommend(body: RecommendIn):
     rep = recommend(DB, QUESTIONS, answers, user_conditions=body.conditions,
                     top_n=pool, include_status=statuses)
     recs = _enrich(rep["recommendations"])
-    wanted = [t for t in body.only_tags if t in ("science_backed", "one_timer", "quick_win")]
+    wanted = [t for t in body.only_tags if t in ("science_backed", "one_timer", "zero_time_habit", "quick_win")]
     if wanted:
         recs = [r for r in recs if any(r.get("tags", {}).get(t) for t in wanted)]
     rep["recommendations"] = recs[:top_n]

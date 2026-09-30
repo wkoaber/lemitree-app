@@ -121,6 +121,10 @@ RED_FLAG_VARIABLES = {
     "VAR_126": "loud habitual snoring (possible obstructive sleep apnoea)",
     "VAR_123": "sleep problems severely interfering with daily life (possible chronic insomnia)",
 }
+# The score at or below which each red flag fires (1 = the worst answer).
+# Witnessed breathing pauses warrant a doctor even when reported 'several times',
+# not only 'often'. Pending review by a sleep specialist.
+RED_FLAG_AT_OR_BELOW = {"VAR_024": 2, "VAR_126": 1, "VAR_123": 1}
 
 def to_scale(score_1_5):
     """1-5 answer (1 = worst) -> -10..+10."""
@@ -148,7 +152,7 @@ def domain_severity(questions, answers, referral_threshold=-4.0):
         if raw is None: continue
         s = (6 - raw) if q["reverse"] else raw
         vals.append(to_scale(s))
-        if s <= 1 and q["primary"] in RED_FLAG_VARIABLES:
+        if q["primary"] in RED_FLAG_VARIABLES and s <= RED_FLAG_AT_OR_BELOW.get(q["primary"], 1):
             flags.append(RED_FLAG_VARIABLES[q["primary"]])
     if not vals:
         return {"severity": None, "band": None, "red_flags": [], "referral": None,
