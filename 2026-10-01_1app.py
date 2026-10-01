@@ -32,7 +32,6 @@ QUESTIONS = load_questionnaire()
 BY_QID = {q["qid"]: q for q in QUESTIONS}
 # The chat model can be changed in Railway Variables without touching code.
 CHAT_MODEL = os.environ.get("LEMITREE_CHAT_MODEL", "claude-sonnet-5-5")
-LAST_CHAT_ERROR = {}   # last failure in /api/chat, shown on /health (type and message, no secrets)
 
 app = FastAPI(title="LemiTree", docs_url=None, redoc_url=None)
 app.mount("/static", StaticFiles(directory=os.path.join(HERE, "static")), name="static")
@@ -54,9 +53,6 @@ def health():
     commit       Railway sets RAILWAY_GIT_COMMIT_SHA for GitHub deploys; 'local' otherwise
     questionnaire  the SURVEY_VERSION embedded in questionnaire.py
     db_built     written into the slim database by make_app_db.py
-    chat_*       whether chat CAN work: key present (never the key itself), SDK
-                 version, and the last error /api/chat met, so one screenshot
-                 diagnoses a broken chat
     """
     built = None
     try:
@@ -65,15 +61,9 @@ def health():
         con.close()
     except sqlite3.OperationalError:
         pass          # database built before app_meta existed
-    try:
-        import anthropic
-        sdk = getattr(anthropic, "__version__", "installed")
-    except ImportError:
-        sdk = None
     return {"ok": True, "commit": (os.environ.get("RAILWAY_GIT_COMMIT_SHA") or "local")[:7],
             "questionnaire": SURVEY_VERSION, "questions": len(QUESTIONS), "db_built": built,
-            "chat_model": CHAT_MODEL, "chat_key_set": bool(os.environ.get("ANTHROPIC_API_KEY")),
-            "anthropic_sdk": sdk, "last_chat_error": LAST_CHAT_ERROR.get("error")}
+            "chat_model": CHAT_MODEL}
 
 
 @app.get("/api/questions")
@@ -279,173 +269,6 @@ def action_detail(abiz: str):
             "settings": params, "steps": steps}
 
 
-# ---------------------------------------------------------------------------
-# EVIDENCE POP-UP
-#
-# Shows, per outcome, the pooled result and every study behind it, with the
-# numbers as extracted and the sentence they were quoted from. Nothing here is
-# re-estimated: the pooled g, interval, k, I2 and tau2 are read as stored by
-# pool_effects.py, and each study's g and SE as stored. The only arithmetic is
-# for DISPLAY: a study's 95% interval g +/- 1.96 SE (the usual forest-plot
-# convention) and orienting the pooled numbers so that positive = better.
-#
-# Which studies entered the pooled estimate is not stored (claim_evidence.weight
-# is still empty), so it is RECONSTRUCTED from the pooling rules in the
-# handover and then CHECKED: if the number of studies the rules admit differs
-# from the stored pooled_k, the page says the split could not be confirmed
-# instead of guessing. Storing the weight in pool_effects.py would make this
-# exact; until then the check keeps it honest.
-# ---------------------------------------------------------------------------
-_norm = lambda v: "".join(ch for ch in str(v or "").lower() if ch.isalnum())
-# Directions that pool_effects.py computes but does not pool.
-NOT_POOLED_DIRECTIONS = {"noeffect", "mixed", "unclear", "neutral", "notreported", "none", ""}
-# Reported effect types that are already standardised and may be used directly.
-STANDARDISED = {"smd", "hedgesg", "cohensd", "g", "d", "standardisedmeandifference",
-                "standardizedmeandifference", "hedges", "cohen"}
-MAX_ABS_G = 3.0
-DIRECTION_WORDS = {"supports": "In favour", "supportsbenefit": "In favour", "benefit": "In favour",
-                   "refutes": "Against", "harm": "Against", "noeffect": "No effect found",
-                   "mixed": "Mixed results", "neutral": "No clear direction", "unclear": "Unclear"}
-CONTRAST_WORDS = {"between_groups": "Compared with a control group",
-                  "within_change": "Change within one group",
-                  "single_group_pre_post": "Before and after, one group"}
-
-
-def _study_g(row):
-    """(g used for pooling or None, reason it is not pooled or None)."""
-    direction = _norm(row["supports_direction"])
-    if row["computed_hedges_g"] is not None:
-        g = row["computed_hedges_g"]
-    elif _norm(row["effect_size_type"]) in STANDARDISED and row["effect_size_value"] is not None:
-        g = row["effect_size_value"]
-    else:
-        g = None
-    if direction in NOT_POOLED_DIRECTIONS:
-        return g, "The paper reports no clear effect in either direction, so it is shown but not pooled"
-    if g is None:
-        return None, "No standardised effect could be computed from what the paper reports"
-    if abs(g) > MAX_ABS_G:
-        return g, "Excluded: an effect this large (|g| > 3) is implausible and is flagged for checking"
-    return g, None
-
-
-def _link(p):
-    if p.get("open_access_url"):
-        return p["open_access_url"]
-    doi = (p.get("doi_or_identifier") or "").strip()
-    if doi.lower().startswith("http"):
-        return doi
-    if doi.startswith("10."):
-        return "https://doi.org/" + doi
-    if p.get("pmid"):
-        return f"https://pubmed.ncbi.nlm.nih.gov/{p['pmid']}/"
-    return None
-
-
-def _cite(p):
-    a = (p.get("authors") or "").replace(";", ",").split(",")[0].strip()
-    parts = a.split()
-    # "Smith J" / "Smith JK" (surname first) or "John Smith" (surname last)
-    if not parts:
-        first = "Unknown author"
-    elif len(parts) > 1 and parts[-1].replace(".", "").isupper() and len(parts[-1].replace(".", "")) <= 3:
-        first = " ".join(parts[:-1])
-    else:
-        first = parts[-1]
-    many = "," in (p.get("authors") or "") or ";" in (p.get("authors") or "")
-    return f"{first}{' et al.' if many else ''} ({p.get('year') or 'n.d.'})"
-
-
-@app.get("/api/evidence/{abiz}")
-def evidence(abiz: str, vars: str = ""):
-    """All evidence for one action, grouped by outcome; the person's weak
-    outcomes (comma-separated VAR ids in ?vars=) come first."""
-    con = _ro(); con.row_factory = sqlite3.Row
-    have = {r[0] for r in con.execute("SELECT name FROM sqlite_master WHERE type='table'")}
-    if not {"claim_evidence", "scientific_evidence"} <= have:
-        con.close()
-        raise HTTPException(503, "evidence tables are not in this database yet; rebuild it with make_app_db.py")
-    a = con.execute("SELECT id, action_name FROM action WHERE business_id = ? AND deleted_at IS NULL", (abiz,)).fetchone()
-    if not a:
-        con.close()
-        raise HTTPException(404, "unknown action")
-    first = [v for v in vars.split(",") if v]
-    journals = {r["id"]: r["journal_name"] for r in con.execute("SELECT id, journal_name FROM scientific_journal")} \
-        if "scientific_journal" in have else {}
-    effects = con.execute("""SELECT e.id, v.business_id AS vbiz, v.variable_name, v.improvement_direction AS dir,
-            e.summary_effect_size_value AS g, e.summary_ci_low AS lo, e.summary_ci_high AS hi,
-            e.pooled_k AS k, e.pooled_i2 AS i2, e.pooled_tau2 AS tau2
-        FROM effect_of_action e JOIN variable v ON v.id = e.variable_id
-        WHERE e.action_id = ? AND e.deleted_at IS NULL""", (a["id"],)).fetchall()
-    out, screened = [], 0
-    for e in effects:
-        links = con.execute("""SELECT audit_status, evidence_id FROM paper_effect_link
-                               WHERE effect_id = ? AND audit_status IS NOT NULL""", (e["id"],)).fetchall()
-        screened += len(links)
-        verified = {l["evidence_id"] for l in links if l["audit_status"] == "verified"}
-        claims = con.execute("SELECT * FROM claim_evidence WHERE effect_id = ? AND deleted_at IS NULL",
-                             (e["id"],)).fetchall()
-        if not claims and not verified and e["g"] is None:
-            continue
-        papers = {}
-        ids = verified | {c["evidence_id"] for c in claims}
-        for pid in ids:
-            p = con.execute("SELECT * FROM scientific_evidence WHERE id = ?", (pid,)).fetchone()
-            if p:
-                p = dict(p); p["journal"] = journals.get(p.get("journal_id"))
-                papers[pid] = p
-        studies, counted = [], 0
-        for c in claims:
-            c = dict(c); p = papers.get(c["evidence_id"], {})
-            g, why_not = _study_g(c)
-            if why_not is None:
-                counted += 1
-            se = c["computed_g_se"]
-            studies.append({
-                "cite": _cite(p) if p else "Paper details unavailable", "title": p.get("title"),
-                "journal": p.get("journal"), "link": _link(p) if p else None,
-                "design": CONTRAST_WORDS.get(c["contrast_type"]), "evidence_type": p.get("evidence_type"),
-                "n": p.get("population_n"), "retracted": bool(p.get("is_retracted")),
-                "industry": bool(p.get("industry_conflict_flag")), "funding": p.get("funding_source"),
-                "direction": DIRECTION_WORDS.get(_norm(c["supports_direction"]), c["supports_direction"]),
-                "arms": None if c["arm1_mean"] is None else {
-                    "m1": c["arm1_mean"], "sd1": c["arm1_sd"], "n1": c["arm1_n"],
-                    "m2": c["arm2_mean"], "sd2": c["arm2_sd"], "n2": c["arm2_n"]},
-                "change": None if c["change_mean"] is None else {"m": c["change_mean"], "sd": c["change_sd"]},
-                "reported": None if c["effect_size_value"] is None else {
-                    "type": c["effect_size_type"], "value": c["effect_size_value"],
-                    "lo": c["ci_low"], "hi": c["ci_high"]},
-                "p": c["p_value"], "p_threshold": bool(c["p_value_is_threshold"]),
-                "g": abs(g) if g is not None else None,
-                "g_lo": abs(g) - 1.96 * se if (g is not None and se) else None,
-                "g_hi": abs(g) + 1.96 * se if (g is not None and se) else None,
-                "pooled": why_not is None, "not_pooled_reason": why_not,
-                "quote": c["coding_note"], "where": c["page_or_section_reference"]})
-        # papers a person verified as relevant but whose numbers are not extracted yet
-        with_claims = {c["evidence_id"] for c in claims}
-        waiting = [{"cite": _cite(p), "title": p.get("title"), "journal": p.get("journal"),
-                    "link": _link(p), "retracted": bool(p.get("is_retracted"))}
-                   for pid, p in papers.items() if pid in verified and pid not in with_claims]
-        # pooled numbers, oriented so that positive = better for the person
-        pooled = None
-        if e["g"] is not None:
-            g, lo, hi = e["g"], e["lo"], e["hi"]
-            if e["dir"] == "decrease":
-                g, lo, hi = -g, (None if hi is None else -hi), (None if lo is None else -lo)
-            pooled = {"g": g, "lo": lo, "hi": hi, "k": e["k"],
-                      "i2": e["i2"], "tau2": e["tau2"],
-                      "oriented": e["dir"] in ("increase", "decrease"),
-                      "includes_zero": lo is not None and hi is not None and lo <= 0 <= hi,
-                      # same bound as the engine (recommend.MAX_ABS_G): shown, never used
-                      "implausible": abs(g) > MAX_ABS_G}
-        confirmed = pooled is not None and e["k"] is not None and counted == e["k"]
-        out.append({"variable": e["variable_name"], "vbiz": e["vbiz"], "pooled": pooled,
-                    "split_confirmed": confirmed, "studies": studies, "waiting": waiting})
-    con.close()
-    out.sort(key=lambda o: (o["vbiz"] not in first, o["pooled"] is None, -len(o["studies"]), o["variable"]))
-    return {"abiz": abiz, "name": a["action_name"], "outcomes": out, "screened_links": screened}
-
-
 class ChatIn(BaseModel):
     messages: list[dict]
     current_qid: Optional[str] = None
@@ -464,10 +287,8 @@ def api_chat(body: ChatIn):
     try:
         import anthropic
     except ImportError:
-        LAST_CHAT_ERROR["error"] = "the anthropic package is not installed"
         raise HTTPException(500, "the anthropic package is not installed")
     if not os.environ.get("ANTHROPIC_API_KEY"):
-        LAST_CHAT_ERROR["error"] = "ANTHROPIC_API_KEY is not set on this server"
         raise HTTPException(500, "ANTHROPIC_API_KEY is not set on the server")
     q = BY_QID.get(body.current_qid)
     if not q:
@@ -487,13 +308,8 @@ def api_chat(body: ChatIn):
             for m in body.messages if m.get("role") in ("user", "assistant") and m.get("content")]
     if not msgs or msgs[-1]["role"] != "user":
         msgs.append({"role": "user", "content": "(please ask me the current question)"})
-    try:
-        resp = client.messages.create(model=CHAT_MODEL, max_tokens=400,
-                                      system=CHAT_SYSTEM + "\n\n" + ctx, tools=[tool], messages=msgs)
-    except Exception as e:          # report WHY on /health instead of a bare 500
-        LAST_CHAT_ERROR["error"] = f"{type(e).__name__}: {str(e)[:300]}"
-        raise HTTPException(502, "chat model call failed; see /health")
-    LAST_CHAT_ERROR.pop("error", None)
+    resp = client.messages.create(model=CHAT_MODEL, max_tokens=400,
+                                  system=CHAT_SYSTEM + "\n\n" + ctx, tools=[tool], messages=msgs)
     reply, idx, para = "", None, None
     for b in resp.content:
         if b.type == "text":

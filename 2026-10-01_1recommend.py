@@ -207,17 +207,8 @@ def weak_variables(questions, answers, threshold=2):
                 weak_all[vid] = min(weak_all.get(vid, 9), score)
     return weak_all, weak_primary
 
-# PLAUSIBILITY GUARD on STORED pooled results. pool_effects.py excludes any
-# study with |g| > 3, but a pooled value written before that rule existed can
-# stay in effect_of_action (found 1 Oct 2026: a regression coefficient of -7.9
-# from 22 Sep was still served as 'Science-backed, g = +7.90'). The engine
-# therefore never trusts a stored |g| above this bound, whatever wrote it.
-MAX_ABS_G = 3.0
-
 def _evidence_status_map(q):
-    ev  = {r[0] for r in q(f"""SELECT DISTINCT action_id FROM effect_of_action
-                              WHERE summary_effect_size_value IS NOT NULL
-                                AND ABS(summary_effect_size_value) <= {MAX_ABS_G}""")}
+    ev  = {r[0] for r in q("SELECT DISTINCT action_id FROM effect_of_action WHERE summary_effect_size_value IS NOT NULL")}
     ver = {r[0] for r in q("""SELECT DISTINCT eoa.action_id FROM paper_effect_link pel
              JOIN effect_of_action eoa ON eoa.id=pel.effect_id WHERE pel.audit_status='verified'""")}
     aud = {r[0] for r in q("""SELECT DISTINCT eoa.action_id FROM paper_effect_link pel
@@ -286,8 +277,6 @@ def recommend(db, questions, answers, user_conditions=(), top_n=5, threshold=2,
             JOIN action a   ON a.id = eoa.action_id
             WHERE v.business_id IN ({marks})""", tuple(weak)).fetchall():
         if aid in gated: continue
-        if g is not None and abs(g) > MAX_ABS_G:
-            g, lo, hi = None, None, None          # implausible stored value: treat as unquantified
         st = status_of(aid)
         if aid not in seen_actions:
             report["available_by_status"][st] = report["available_by_status"].get(st, 0) + 1

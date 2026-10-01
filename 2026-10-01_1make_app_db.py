@@ -11,9 +11,7 @@ WHY
 WHAT IT KEEPS
   Everything the recommender and the page read, unchanged. paper_effect_link is
   reduced to its HUMAN-AUDITED rows only, because evidence status depends on
-  nothing else. For the evidence pop-up it keeps claim_evidence, the papers
-  behind claims or verified links, and their journal names -- whitelisted
-  columns only (see KEEP).
+  nothing else.
 
 WHAT IT BLANKS
   Columns that describe the METHOD rather than the result (search queries,
@@ -39,42 +37,8 @@ BLANK = {"paper_effect_link": ["api_source", "query_used", "operator", "audit_op
          "action": ["search_keywords"],
          "variable": ["search_synonyms"]}
 
-DROP = ["llm_prefilter_decision", "harvest_log", "proposed_effect_link", "migration_log"]
-
-# The evidence pop-up shows the RESULT of the method: which papers, which
-# numbers, the quoted sentence they came from. These whitelists keep exactly
-# that and nothing about how papers were found or extracted (no abstracts --
-# size and copyright -- no api_* fields, no extraction operator or method).
-# Rows: only claims, and only papers that carry a claim or a human-VERIFIED link.
-KEEP = {
-    "claim_evidence": ["id", "business_id", "effect_id", "evidence_id", "supports_direction",
-                       "effect_size_type", "effect_size_value", "ci_low", "ci_high",
-                       "p_value", "p_value_is_threshold", "contrast_type",
-                       "arm1_mean", "arm1_sd", "arm1_n", "arm2_mean", "arm2_sd", "arm2_n",
-                       "change_mean", "change_sd", "computed_hedges_g", "computed_g_se",
-                       "weight", "coding_note", "page_or_section_reference", "deleted_at"],
-    "scientific_evidence": ["id", "business_id", "journal_id", "title", "authors", "year",
-                            "evidence_type", "population_n", "doi_or_identifier", "pmid",
-                            "open_access_url", "is_retracted", "funding_source",
-                            "industry_conflict_flag", "deleted_at"],
-    "scientific_journal": ["id", "business_id", "journal_name"],
-}
-ROWS = {
-    "claim_evidence": "deleted_at IS NULL",
-    "scientific_evidence": """deleted_at IS NULL AND id IN (
-        SELECT evidence_id FROM claim_evidence WHERE deleted_at IS NULL
-        UNION SELECT evidence_id FROM paper_effect_link WHERE audit_status = 'verified')""",
-    "scientific_journal": "id IN (SELECT journal_id FROM scientific_evidence)",
-}
-
-def slim_table(q, t):
-    """Replace table t by a copy holding only the whitelisted columns and rows."""
-    have = [r[1] for r in q(f'PRAGMA table_info("{t}")')]
-    cols = ", ".join(f'"{c}"' for c in KEEP[t] if c in have)
-    q(f'CREATE TABLE "_slim_{t}" AS SELECT {cols} FROM "{t}" WHERE {ROWS[t]}')
-    q(f'DROP TABLE "{t}"')
-    q(f'ALTER TABLE "_slim_{t}" RENAME TO "{t}"')
-    return q(f'SELECT COUNT(*) FROM "{t}"').fetchone()[0]
+DROP = ["llm_prefilter_decision", "harvest_log", "proposed_effect_link",
+        "scientific_evidence", "scientific_journal", "claim_evidence", "migration_log"]
 
 def build(src, dst):
     if os.path.exists(dst):
@@ -86,12 +50,6 @@ def build(src, dst):
     for t in DROP:
         if t in have:
             q(f'DROP TABLE "{t}"')
-    # order matters: papers are chosen via claims and verified links, so slim
-    # claims first, then papers, then journals, before unaudited links go
-    kept = {}
-    for t in ("claim_evidence", "scientific_evidence", "scientific_journal"):
-        if t in have:
-            kept[t] = slim_table(q, t)
     # evidence status only depends on audited links
     before = q("SELECT COUNT(*) FROM paper_effect_link").fetchone()[0]
     q("DELETE FROM paper_effect_link WHERE audit_status IS NULL")
@@ -110,7 +68,7 @@ def build(src, dst):
     con.commit()
     q("VACUUM")
     con.close()
-    return before, after, kept
+    return before, after
 
 def check(src, dst):
     """Same scenarios, both databases -> results must match exactly."""
@@ -192,33 +150,6 @@ def check_meaning():
         ok = ok and good
     return ok and ok12
 
-def suspect_effects(dst):
-    """Stored pooled results that look wrong. Warnings, not failures: the
-    engine already ignores |g| > 3, and the others need a person with the paper.
-      implausible   |g| > 3 (a raw difference or coefficient stored as g)
-      raw-unit CI   one study with a 95% interval wider than 4 g-units, which
-                    needs n < 4 per arm -- usually an interval in minutes
-      points worse  the interval excludes zero on the HARMFUL side; check the
-                    sign before anyone reads it (e.g. a scale where lower = better)
-    """
-    con = sqlite3.connect(dst)
-    rows = con.execute("""SELECT a.business_id, v.business_id, v.variable_name, v.improvement_direction,
-            e.summary_effect_size_value, e.summary_ci_low, e.summary_ci_high, e.pooled_k
-        FROM effect_of_action e JOIN action a ON a.id = e.action_id JOIN variable v ON v.id = e.variable_id
-        WHERE e.summary_effect_size_value IS NOT NULL AND e.deleted_at IS NULL""").fetchall()
-    con.close()
-    out = []
-    for abiz, vbiz, vname, d, g, lo, hi, k in rows:
-        sign = -1 if d == "decrease" else 1
-        b, blo, bhi = g * sign, (None if lo is None else min(lo * sign, hi * sign)), (None if hi is None else max(lo * sign, hi * sign))
-        if abs(g) > 3:
-            out.append((abiz, vbiz, vname, "implausible", g, lo, hi, k))
-        elif (k or 1) == 1 and lo is not None and hi is not None and hi - lo > 4:
-            out.append((abiz, vbiz, vname, "raw-unit CI", g, lo, hi, k))
-        elif d in ("increase", "decrease") and bhi is not None and bhi < 0:
-            out.append((abiz, vbiz, vname, "points worse", g, lo, hi, k))
-    return out
-
 def main():
     if len(sys.argv) < 2:
         print(__doc__); sys.exit(1)
@@ -227,13 +158,11 @@ def main():
     dst = os.path.join(here, "lemitree.db")
     if os.path.abspath(src) == os.path.abspath(dst):
         sys.exit("Source and destination are the same file -- point at the PIPELINE database.")
-    before, after, kept = build(src, dst)
+    before, after = build(src, dst)
     mb = os.path.getsize(dst) / 1e6
     print(f"built {dst}")
     print(f"  size {os.path.getsize(src)/1e6:.1f} MB -> {mb:.1f} MB")
     print(f"  paper_effect_link {before} -> {after} rows (audited only)")
-    for t, n in kept.items():
-        print(f"  {t}: {n} rows kept, whitelisted columns only")
     print("checking answers are scored the way their labels read:")
     if not check_meaning():
         os.remove(dst)
@@ -242,12 +171,6 @@ def main():
     if not check(src, dst):
         os.remove(dst)
         sys.exit("\nFAILED: results differ -- slim database removed. Nothing changed.")
-    sus = suspect_effects(dst)
-    if sus:
-        print(f"\nWARNING -- {len(sus)} stored pooled result(s) to check against their papers"
-              " (the website ignores the 'implausible' ones):")
-        for abiz, vbiz, vname, why, g, lo, hi, k in sus:
-            print(f"  {why:13} {abiz} {vbiz} {vname[:28]:28} g={g:+.2f} [{lo:+.2f}, {hi:+.2f}] k={k}")
     if mb >= 95:
         sys.exit("\nFAILED: still too large for GitHub.")
     print(f"\nOK -- {mb:.1f} MB, identical results. Safe to commit.")

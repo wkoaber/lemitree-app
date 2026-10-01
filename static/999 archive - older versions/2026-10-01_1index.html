@@ -136,41 +136,6 @@ h2{font-size:18px;margin:0 0 4px;font-weight:800}
 .alt{font-size:13px;color:var(--ink-2);margin-top:2px}
 .draft{display:inline-block;font-size:12px;font-weight:700;color:var(--amber);background:var(--amber-soft);border-radius:999px;padding:2px 9px;margin:0 0 8px}
 
-/* ---------- the research behind an action ---------- */
-button.tier{cursor:pointer;font-family:inherit}
-button.tier:hover{outline:1px solid currentColor}
-.seestudies{border:0;background:none;padding:0;margin-top:4px;color:var(--blue);font:inherit;font-size:12px;font-weight:800;cursor:pointer;text-align:left}
-dialog#ev{width:min(760px,96vw);max-height:90vh;border:1px solid var(--line);border-radius:18px;background:var(--panel);color:var(--ink);padding:0}
-dialog#ev::backdrop{background:rgba(2,8,20,.72)}
-.ev-head{position:sticky;top:0;background:var(--panel);padding:20px 22px 12px;border-bottom:1px solid var(--line);display:flex;gap:14px;justify-content:space-between;align-items:flex-start;z-index:1}
-.ev-head h2{font-size:19px;margin:0;line-height:1.3}
-.ev-head p{margin:4px 0 0;font-size:13px;color:var(--ink-2)}
-.ev-close{border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:10px;padding:6px 12px;font:inherit;font-weight:800;cursor:pointer}
-.ev-body{padding:14px 22px 22px;font-size:14.5px}
-.ev-intro{margin:0 0 12px;max-width:64ch}
-.outcome{border:1px solid var(--line);border-radius:14px;margin:0 0 10px;background:var(--panel-2)}
-.outcome>summary{cursor:pointer;padding:12px 14px;font-weight:800;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.outcome>summary span{font-weight:600;color:var(--ink-2);font-size:13.5px}
-.outcome .in{padding:0 14px 14px}
-.pooled{background:var(--blue-soft);border-radius:12px;padding:12px 14px;margin:0 0 12px}
-.pooled .big{font-size:20px;font-weight:800;color:#fff}
-.pooled .note{font-size:13px;color:var(--pale);margin-top:4px}
-.pooled.warn{background:var(--amber-soft)}.pooled.warn .big{color:var(--amber);font-size:15px}
-.method{font-size:12px;color:var(--ink-2);margin-top:6px}
-.study{border-top:1px solid var(--line)}
-.study>summary{cursor:pointer;padding:10px 0;display:flex;gap:8px;flex-wrap:wrap;align-items:baseline;font-size:14px}
-.study>summary b{font-weight:800}
-.badge{font-size:11.5px;font-weight:800;border-radius:999px;padding:2px 8px;background:var(--slate-soft);color:var(--slate)}
-.badge.pooled-yes{background:var(--mint-soft);color:var(--mint)}
-.badge.alert{background:var(--coral-soft);color:var(--coral)}
-.study .in{padding:0 0 12px;font-size:13.5px}
-.study dl{display:grid;grid-template-columns:max-content 1fr;gap:3px 12px;margin:6px 0}
-.study dt{color:var(--ink-2)}.study dd{margin:0}
-blockquote.quote{margin:8px 0 0;padding:8px 12px;border-left:3px solid var(--blue);background:var(--panel);color:var(--ink);font-size:13.5px}
-.waiting li{margin:4px 0}
-.muted{color:var(--ink-2);font-size:13px}
-@media (max-width:560px){dialog#ev{width:100vw;max-height:100vh;height:100%;border-radius:0}.ev-head,.ev-body{padding-left:16px;padding-right:16px}}
-
 /* conditions & chat */
 details.cond{margin-top:20px;border-top:1px solid var(--line);padding-top:14px}
 details.cond summary{cursor:pointer;font-weight:700;font-size:14px}
@@ -288,11 +253,6 @@ footer p{max-width:78ch}
 </main>
 
 <button class="pill" id="pill" hidden></button>
-<dialog id="ev" aria-labelledby="ev-title">
-  <div class="ev-head"><div><h2 id="ev-title"></h2><p>The research behind this action</p></div>
-    <button class="ev-close" id="ev-close">Close</button></div>
-  <div class="ev-body" id="ev-body"></div>
-</dialog>
 <footer>
   <p><b>Please read.</b> LemiTree offers educational information, not medical advice. It does not diagnose or treat anything. Evidence labels describe published research, not a prediction about you. Our safety filter can only act on conditions you tell us about. Persistent sleep problems deserve a doctor — chronic insomnia and sleep apnoea are medical conditions and are treatable.</p>
   <p>Every recommendation traces back to audited scientific papers. Where the evidence is thin, we say so rather than pretend.</p>
@@ -344,7 +304,7 @@ const onlyTags=()=>pressed('#f-tags').map(b=>b.dataset.tag);
 const SHOW=()=>Object.fromEntries([...document.querySelectorAll('#f-show .tog')].map(b=>[b.dataset.show,b.getAttribute('aria-pressed')==='true']));
 const joinAnd=a=>a.length<2?a.join(''):a.slice(0,-1).join(', ')+' and '+a[a.length-1];
 
-let CUR=[], WEAK=[];                            // the cards on screen; the person's weak outcomes
+let CUR=[];                                     // the cards on screen, for pros and cons
 async function render(){
   const answered=Object.keys(answers).length;
   $('#bar').style.width=(answered/Q.length*100)+'%';
@@ -365,7 +325,7 @@ async function render(){
     const s=r.severity; if(s.red_flags&&s.red_flags.length) html+=`<ul>${s.red_flags.map(f=>`<li>${esc(f)}</li>`).join('')}</ul>`;
     html+='</div>';
   }
-  CUR=r.recommendations||[]; WEAK=Object.keys(r.weak_variables||{});
+  CUR=r.recommendations||[];
   if(r.suppress_actions){
     html+=`<div class="empty">We're not showing self-help actions here on purpose — the right next step is a clinician.</div>`;
   } else if(!CUR.length){
@@ -426,7 +386,7 @@ function timeFact(x){
 function card(x,i){
   const sh=SHOW(), t=x.tags||{}, [tierTxt,tierCls]=TIER[x.status]||[x.status,'none'];
   const state=plan[x.abiz]&&plan[x.abiz].state;
-  let tags=`<button class="tier ${tierCls}" data-ev="${x.abiz}" data-i="${i}" title="See the research behind this">${tierTxt}</button>`;
+  let tags=`<span class="tier ${tierCls}">${tierTxt}</span>`;
   if(t.one_timer) tags+=`<span class="tag one">One-timer</span>`;
   if(t.zero_time_habit) tags+=`<span class="tag habit">Zero-time habit</span>`;
   if(t.quick_win) tags+=`<span class="tag quick">Quick win</span>`;
@@ -441,7 +401,7 @@ function card(x,i){
     else if(x.status==='unstudied'){ v='Not studied'; s="shown because it's cheap to try"; }
     else if(x.status==='no_reliable_effect'){ v='No reliable effect'; s='the interval includes zero'; }
     else { v='Nothing found'; s='we searched; none in favour'; }
-    facts.push(`<div class="fact"><div class="k">Evidence</div><div class="v">${v}</div><div class="s">${s}</div>${x.status!=='unstudied'?`<button class="seestudies" data-ev="${x.abiz}" data-i="${i}">See the studies</button>`:''}</div>`);
+    facts.push(`<div class="fact"><div class="k">Evidence</div><div class="v">${v}</div><div class="s">${s}</div></div>`);
   }
   const deep = sh.deep ? `<div class="deep" data-abiz="${x.abiz}" data-i="${i}">
       <details data-part="what"><summary>What it is</summary><div class="body">Loading…</div></details>
@@ -504,8 +464,6 @@ document.addEventListener('toggle',async e=>{
 },true);
 
 document.addEventListener('click',e=>{
-  const ev=e.target.closest('[data-ev]');
-  if(ev){ openEvidence(ev.dataset.ev, CUR[+ev.dataset.i]); return; }
   const m=e.target.closest('[data-mark]');
   if(m){ const x=CUR.find(c=>c.abiz===m.dataset.abiz); mark(m.dataset.abiz,x?x.action:m.dataset.abiz,m.dataset.mark); return; }
   const u=e.target.closest('[data-unmark]');
@@ -513,72 +471,6 @@ document.addEventListener('click',e=>{
   if(e.target.id==='copyplan') copyPlan();
 });
 document.querySelectorAll('.controls .tog').forEach(b=>b.onclick=()=>{ b.setAttribute('aria-pressed', b.getAttribute('aria-pressed')!=='true'); render(); });
-
-/* ---------- the research behind an action (pop-up) ---------- */
-const num=v=>v==null?'—':String(+Number(v).toFixed(Math.abs(v)>=100?0:2));
-const sgn=v=>v==null?'—':(v>0?'+':v<0?'−':'')+Math.abs(+v).toFixed(2);
-const sizeWord=g=>{const a=Math.abs(g); return a<0.2?'a very small':a<0.5?'a small':a<0.8?'a medium-sized':'a large';};
-const INTRO={evidenced:'Studies measured a benefit, and we combined their numbers. Open an outcome to see each study, its numbers and the sentence they were quoted from.',
-  supported_unquantified:'People on our team checked these papers and confirmed they study this action. We have not yet extracted their numbers, so there is no combined result yet.',
-  searched_unsupported:'We searched for research on this action. The papers we screened did not support it.',
-  no_reliable_effect:'Studies exist, but taken together their result is compatible with no effect at all.',
-  unstudied:'We have not found research on this action yet. It is shown because it is cheap and easy to try.'};
-function pooledBox(p){
-  if(!p) return '';
-  if(p.implausible) return `<div class="pooled warn"><div class="big">Not used: a stored result of g = ${sgn(p.g)} failed our plausibility check</div><div class="note">An effect this large (more than 3) is not credible for this kind of study; it usually means a raw difference was stored as a standardised one. It is being re-checked and does not count towards any recommendation.</div></div>`;
-  const ci=p.lo!=null?` (95% interval ${sgn(p.lo)} to ${sgn(p.hi)})`:'';
-  let note;
-  if(!p.oriented) note='This outcome has a healthy range rather than a “more is better” direction, so whether this helps depends on where you start.';
-  else if(p.includes_zero) note='The interval includes zero, so this is not a reliable effect: the studies are compatible with benefit, harm or nothing.';
-  else if(p.g<0) note='This points to a worse result on this outcome. We are checking these numbers against the paper.';
-  else note=`That is ${sizeWord(p.g)} effect in your favour.`;
-  const k=p.k||1;
-  const het = k>=3&&p.i2!=null ? ` Studies disagree to some degree: I² = ${Math.round(p.i2)}%.` : k===2 ? ' Two studies are too few to judge how much they agree.' : k===1 ? ' One study only, so treat it as a first signal.' : '';
-  return `<div class="pooled"><div class="big">g = ${sgn(p.g)}${ci}</div><div class="note">${note}${het}</div>
-    <div class="method">Combined from ${k} stud${k===1?'y':'ies'}${k>1?' with a random-effects meta-analysis (DerSimonian–Laird, Hartung–Knapp–Sidik–Jonkman interval)':''}. g is a standardised effect size; positive means better for you.</div></div>`;
-}
-function studyBlock(st,confirmed){
-  const badge = st.retracted ? '<span class="badge alert">Retracted</span>'
-    : confirmed ? (st.pooled?'<span class="badge pooled-yes">In the combined result</span>':'<span class="badge">Not combined</span>') : '';
-  const rows=[];
-  if(st.design) rows.push(['Design',esc(st.design)+(st.evidence_type?` (${esc(st.evidence_type)})`:'')]);
-  if(st.n) rows.push(['People',esc(st.n)]);
-  if(st.arms) rows.push(['Results',`Group 1: ${num(st.arms.m1)} ± ${num(st.arms.sd1)}${st.arms.n1?` (n = ${st.arms.n1})`:''}<br>Group 2: ${num(st.arms.m2)} ± ${num(st.arms.sd2)}${st.arms.n2?` (n = ${st.arms.n2})`:''}`]);
-  if(st.change) rows.push(['Change',`${num(st.change.m)}${st.change.sd!=null?` (SD ${num(st.change.sd)})`:''}`]);
-  if(st.reported) rows.push(['Reported',`${esc(st.reported.type||'')} ${num(st.reported.value)}${st.reported.lo!=null?` (95% ${num(st.reported.lo)} to ${num(st.reported.hi)})`:''}`]);
-  if(st.p!=null) rows.push(['p-value',`${st.p_threshold?'p &lt; ':'p = '}${num(st.p)}`]);
-  if(st.g!=null) rows.push(['Effect size',`g = ${num(st.g)}${st.g_lo!=null?` (95% ${num(st.g_lo)} to ${num(st.g_hi)})`:''}`]);
-  if(st.industry||st.funding) rows.push(['Funding',st.industry?'Industry funding or a conflict of interest is reported'+(st.funding?`: ${esc(st.funding)}`:''):esc(st.funding)]);
-  return `<details class="study"><summary><b>${esc(st.cite)}</b><span>${esc(st.direction||'')}</span>${st.g!=null?`<span class="muted">g ${num(st.g)}</span>`:''}${badge}</summary><div class="in">
-    ${st.title?`<div>${st.link?`<a href="${esc(st.link)}" target="_blank" rel="noopener">${esc(st.title)}</a>`:esc(st.title)}${st.journal?` <span class="muted">— ${esc(st.journal)}</span>`:''}</div>`:''}
-    ${rows.length?`<dl>${rows.map(([k,v])=>`<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>`:''}
-    ${!st.pooled&&st.not_pooled_reason?`<div class="muted">${esc(st.not_pooled_reason)}.</div>`:''}
-    ${st.quote?`<blockquote class="quote">From the paper${st.where?` (${esc(st.where)})`:''}: “${esc(st.quote)}”</blockquote>`:''}
-  </div></details>`;
-}
-async function openEvidence(abiz,x){
-  const dlg=$('#ev'); $('#ev-title').textContent=x?x.action:''; $('#ev-body').innerHTML='<p class="muted">Loading…</p>';
-  if(dlg.showModal) dlg.showModal(); else dlg.setAttribute('open','');
-  let d=null;
-  try{ const r=await fetch(`/api/evidence/${encodeURIComponent(abiz)}?vars=${encodeURIComponent(WEAK.join(','))}`); d=r.ok?await r.json():null; }catch(e){}
-  if(!d){ $('#ev-body').innerHTML='<p>The research details could not be loaded right now.</p>'; return; }
-  const st=x?x.status:'';
-  let h=`<p class="ev-intro">${INTRO[st]||''}</p>`;
-  if(!d.outcomes.length) h+=`<p class="muted">${d.screened_links?`${d.screened_links} paper–outcome pairs were screened by a person; none was confirmed as studying this action.`:'No papers are linked to this action yet.'}</p>`;
-  d.outcomes.forEach((o,ix)=>{
-    const p=o.pooled, sum = p ? (p.implausible?'not used':`g = ${sgn(p.g)}, ${p.k||1} stud${(p.k||1)===1?'y':'ies'}`) : `${o.studies.length+o.waiting.length} paper${o.studies.length+o.waiting.length===1?'':'s'}, not yet combined`;
-    h+=`<details class="outcome"${ix===0?' open':''}><summary>${esc(o.variable)}<span>${sum}</span></summary><div class="in">
-      ${pooledBox(p)}
-      ${p&&!p.implausible&&o.studies.length&&!o.split_confirmed?'<p class="muted">We could not confirm which of these studies entered the combined result, so none is marked.</p>':''}
-      ${o.studies.map(s=>studyBlock(s,o.split_confirmed)).join('')}
-      ${o.waiting.length?`<div class="waiting"><p class="muted" style="margin:10px 0 4px">Checked by a person as relevant; numbers not extracted yet:</p><ul>${o.waiting.map(w=>`<li>${esc(w.cite)} — ${w.link?`<a href="${esc(w.link)}" target="_blank" rel="noopener">${esc(w.title||'paper')}</a>`:esc(w.title||'')}${w.retracted?' <span class="badge alert">Retracted</span>':''}</li>`).join('')}</ul></div>`:''}
-    </div></details>`;
-  });
-  if(d.screened_links) h+=`<p class="muted" style="margin-top:12px">A person screened ${d.screened_links} paper–outcome pairs for this action. Quotes are copied word for word from the papers.</p>`;
-  $('#ev-body').innerHTML=h;
-}
-$('#ev-close').onclick=()=>$('#ev').close();
-$('#ev').addEventListener('click',e=>{ if(e.target.id==='ev') $('#ev').close(); });
 
 /* health conditions */
 let ALLC=[]; fetch('/api/conditions').then(r=>r.json()).then(l=>ALLC=l);
