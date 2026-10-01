@@ -13,29 +13,14 @@ WHAT IT KEEPS
   reduced to its HUMAN-AUDITED rows only, because evidence status depends on
   nothing else.
 
-WHAT IT BLANKS
-  Columns that describe the METHOD rather than the result (search queries,
-  harvest keywords, API sources, who audited what) are set to NULL. The
-  recommender never reads them, and principle 6 keeps the method private.
-
-BUILD STAMP
-  Writes an app_meta table (built_at, source size) that /health reports, so a
-  screenshot of /health proves which database is live.
-
 SAFETY CHECK
   After building, it runs the same recommendation scenarios against BOTH
-  databases and refuses to finish unless the results are identical, and checks
-  that answers are scored the way their labels read.
+  databases and refuses to finish unless the results are identical.
 
 Usage (from inside the lemitree-app folder):
   python make_app_db.py "C:\LemiTree-evidence-pipeline\audit-kit\lemitree.db"
 """
 import sys, os, shutil, sqlite3
-
-# Method, not result: never needed by the website (principle 6).
-BLANK = {"paper_effect_link": ["api_source", "query_used", "operator", "audit_operator", "audit_reason"],
-         "action": ["search_keywords"],
-         "variable": ["search_synonyms"]}
 
 DROP = ["llm_prefilter_decision", "harvest_log", "proposed_effect_link",
         "scientific_evidence", "scientific_journal", "claim_evidence", "migration_log"]
@@ -54,17 +39,6 @@ def build(src, dst):
     before = q("SELECT COUNT(*) FROM paper_effect_link").fetchone()[0]
     q("DELETE FROM paper_effect_link WHERE audit_status IS NULL")
     after = q("SELECT COUNT(*) FROM paper_effect_link").fetchone()[0]
-    for t, cols in BLANK.items():
-        info = {r[1]: r[3] for r in q(f'PRAGMA table_info("{t}")')}   # name -> NOT NULL flag
-        # NOT NULL columns get an empty string; the rest NULL.
-        sets = ", ".join(f'"{c}" = ' + ("''" if info[c] else "NULL") for c in cols if c in info)
-        if sets:
-            q(f'UPDATE "{t}" SET {sets}')
-    import datetime
-    q("DROP TABLE IF EXISTS app_meta")
-    q("CREATE TABLE app_meta (key TEXT PRIMARY KEY, value TEXT)")
-    q("INSERT INTO app_meta VALUES ('built_at', ?)", (datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),))
-    q("INSERT INTO app_meta VALUES ('source_mb', ?)", (f"{os.path.getsize(src)/1e6:.1f}",))
     con.commit()
     q("VACUUM")
     con.close()
@@ -115,32 +89,20 @@ def check_meaning():
     Q = load_questionnaire()
     byv = {q["primary"]: q for q in Q}
     def pick(var, words):
-        """The SCORE of the option whose label contains one of the words."""
         q = byv[var]
-        for o in q["options"]:
-            if any(w in o["label"].lower() for w in words):
-                return q["qid"], o["score"]
-        raise SystemExit(f"no option label containing {words} on {var}")
+        labels = q.get("labels") or [q.get("low"), None, None, None, q.get("high")]
+        for i, lab in enumerate(labels):
+            if lab and any(w in lab.lower() for w in words):
+                return q["qid"], i + 1
+        raise SystemExit(f"no label containing {words} on {var}")
     cases = [  # (description, variable, words in the chosen label, expected referral)
         ("witnessed apnoeas: 'often'",  "VAR_024", ["often"],        "urgent"),
-        ("witnessed apnoeas: 'several'", "VAR_024", ["several"],     "urgent"),
-        ("witnessed apnoeas: 'once or twice'", "VAR_024", ["once or twice"], None),
         ("witnessed apnoeas: 'never'",  "VAR_024", ["never"],        None),
         ("snoring: 'every night'",      "VAR_126", ["every night"],  "urgent"),
         ("snoring: 'never'",            "VAR_126", ["never"],        None),
         ("daily impact: 'severely'",    "VAR_123", ["severely"],     "urgent"),
         ("daily impact: 'not at all'",  "VAR_123", ["not at all"],   None),
     ]
-    # Q12 shows hours in natural order but scores 7-9 h best and >9 h neutral.
-    # A long sleeper must NOT count as weak (that would recommend sleeping more).
-    from recommend import weak_variables
-    ok12 = True
-    for words, weak_expected in ((["under 5"], True), (["more than 9"], False), (["7 to 9"], False)):
-        qid, sc = pick("VAR_119", words)
-        weak = "VAR_119" in weak_variables(Q, {qid: sc})[1]
-        good = weak == weak_expected
-        print(f"  {'correct' if good else 'WRONG':8} {'total sleep: ' + repr(words[0]):32} -> weak={weak}")
-        ok12 = ok12 and good
     ok = True
     for name, var, words, expect in cases:
         qid, raw = pick(var, words)
@@ -148,7 +110,7 @@ def check_meaning():
         good = got == expect
         print(f"  {'correct' if good else 'WRONG':8} {name:32} -> referral={got}")
         ok = ok and good
-    return ok and ok12
+    return ok
 
 def main():
     if len(sys.argv) < 2:
@@ -163,11 +125,11 @@ def main():
     print(f"built {dst}")
     print(f"  size {os.path.getsize(src)/1e6:.1f} MB -> {mb:.1f} MB")
     print(f"  paper_effect_link {before} -> {after} rows (audited only)")
+    print("checking the website gives the same answers on both databases:")
     print("checking answers are scored the way their labels read:")
     if not check_meaning():
         os.remove(dst)
         sys.exit("\nFAILED: an answer is scored opposite to its meaning -- check reverse flags. Nothing changed.")
-    print("checking the website gives the same answers on both databases:")
     if not check(src, dst):
         os.remove(dst)
         sys.exit("\nFAILED: results differ -- slim database removed. Nothing changed.")

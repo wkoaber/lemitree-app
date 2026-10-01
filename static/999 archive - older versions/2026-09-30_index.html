@@ -49,15 +49,20 @@ h2{font-size:18px;margin:0 0 4px;font-weight:800}
 /* ---------- questions with a label on every answer ---------- */
 .q{padding:18px 0;border-top:1px solid var(--line)}
 .q:first-of-type{border-top:0;padding-top:4px}
-.q .text{font-weight:700;margin-bottom:12px;max-width:62ch;display:flex;gap:10px}
-.q .num{color:var(--blue);font-weight:800;min-width:1.6em;font-variant-numeric:tabular-nums}
+.q .cat{font-size:12px;color:var(--ink-2);margin-bottom:4px}
+.q .text{font-weight:700;margin-bottom:12px;max-width:62ch}
 .scale{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
-.opt{display:flex;align-items:center;justify-content:center;min-height:54px;padding:9px 7px;border:1px solid var(--line);background:var(--panel-2);color:var(--ink);border-radius:11px;font:inherit;font-size:13px;font-weight:600;line-height:1.25;cursor:pointer;text-align:center;transition:border-color .12s}
+.opt{display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 6px 11px;border:1px solid var(--line);background:var(--panel-2);color:var(--ink);border-radius:11px;font:inherit;cursor:pointer;text-align:center;transition:border-color .12s}
 .opt:hover{border-color:var(--blue)}
+.opt b{font-size:17px;line-height:1}
+.opt span{font-size:11.5px;line-height:1.25;color:var(--ink-2)}
 .opt[aria-pressed=true]{background:var(--blue);border-color:var(--blue);color:#051126}
+.opt[aria-pressed=true] span{color:#0B2A52}
 @media (max-width:560px){
   .scale{grid-template-columns:1fr}
-  .opt{justify-content:flex-start;min-height:0;padding:12px 14px;text-align:left;font-size:14.5px}
+  .opt{flex-direction:row;justify-content:flex-start;gap:12px;padding:11px 14px;text-align:left}
+  .opt b{width:16px}
+  .opt span{font-size:14px}
 }
 
 /* ---------- results ---------- */
@@ -100,41 +105,8 @@ h2{font-size:18px;margin:0 0 4px;font-weight:800}
 .referral h2{color:var(--coral)}
 .referral p{margin:6px 0 0;font-size:14px}
 .referral ul{margin:8px 0 0 18px;padding:0;font-size:14px}
-.basis{font-size:13px;color:var(--ink-2);margin:2px 0 0;max-width:60ch}
-.gains{margin:12px 0 0;padding:11px 14px;border-radius:12px;background:var(--blue-soft);color:var(--pale);font-size:14px}
-.gains b{color:#fff}
-.feedback{font-size:13px;font-weight:700;color:var(--pale);text-decoration:none;border:1px solid var(--blue);border-radius:999px;padding:5px 12px}
-.feedback:hover{background:var(--blue-soft)}
-.hdr-right{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-
-/* ---------- the person's plan ---------- */
-.plan{margin:14px 0 0;border:1px solid var(--blue);border-radius:14px;padding:12px 14px}
-.plan h3,.kept summary{font-size:14px;font-weight:800;margin:0}
-.plan ul,.kept ul{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:6px}
-.plan li,.kept li{display:flex;justify-content:space-between;gap:10px;align-items:baseline;font-size:14px}
-.linkbtn{border:0;background:none;color:var(--blue);font:inherit;font-size:13px;font-weight:800;cursor:pointer;padding:0;white-space:nowrap}
-.plan .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px;font-size:13px;color:var(--ink-2)}
-.copy{border:1px solid var(--blue);background:transparent;color:var(--pale);border-radius:9px;padding:6px 11px;font:inherit;font-size:13px;font-weight:800;cursor:pointer}
-.kept{margin-top:10px;font-size:14px;color:var(--ink-2)}
-.kept summary{cursor:pointer;color:var(--ink-2)}
-.acts{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 2px}
-.act{border:1px solid var(--line);background:transparent;color:var(--ink-2);border-radius:9px;padding:6px 11px;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
-.act:hover{border-color:var(--blue);color:var(--ink)}
-.act.try[aria-pressed=true]{background:var(--blue);border-color:var(--blue);color:#051126}
-.rec.in-plan{box-shadow:inset 3px 0 0 var(--blue);padding-left:14px}
-
-/* ---------- what / pros and cons / how ---------- */
-.deep{margin-top:10px;border-top:1px dashed var(--line)}
-.deep details{border-bottom:1px dashed var(--line)}
-.deep summary{cursor:pointer;font-size:14px;font-weight:800;padding:9px 0;color:var(--pale)}
-.deep .body{font-size:14px;padding:0 0 12px;max-width:62ch}
-.deep h4{font-size:12.5px;color:var(--ink-2);margin:10px 0 4px;font-weight:700}
-.deep ul{margin:0;padding-left:18px}.deep li{margin:3px 0}
-.deep ol{margin:0;padding-left:20px}.deep ol>li{margin:0 0 10px}
-.step-phase{font-size:12px;color:var(--ink-2);font-weight:700}
-.pit{font-size:13px;color:var(--amber);margin-top:3px}
-.alt{font-size:13px;color:var(--ink-2);margin-top:2px}
-.draft{display:inline-block;font-size:12px;font-weight:700;color:var(--amber);background:var(--amber-soft);border-radius:999px;padding:2px 9px;margin:0 0 8px}
+.sev{font-size:13px;color:var(--ink-2);margin-top:2px}
+.sev b{color:var(--ink)}
 
 /* conditions & chat */
 details.cond{margin-top:20px;border-top:1px solid var(--line);padding-top:14px}
@@ -175,16 +147,13 @@ footer p{max-width:78ch}
     <img src="/static/logo-mark.png" alt="">
     <div><div class="word">LEMITREE</div><div class="motto">Science-powered tactics for a flourishing life.</div></div>
   </a>
-  <div class="hdr-right">
-    <div class="wip">Sleep, work in progress</div>
-    <a class="feedback" href="https://forms.gle/jJEkKFNk1Ef7LudL6" target="_blank" rel="noopener">Give feedback</a>
-  </div>
+  <div class="wip">Sleep · work in progress</div>
 </header>
 
 <main>
   <section id="ask" class="panel">
-    <h1>Find the easiest changes most likely to improve your sleep</h1>
-    <p class="lead">Answer as many questions as you like. Your recommendations update with every answer, and each one shows the evidence behind it — including when the honest answer is “not much yet”.</p>
+    <h1>Where is your sleep going wrong?</h1>
+    <p class="lead">Answer what you can. Recommendations take shape as you go, and each one shows the evidence behind it — including when the honest answer is “not much yet”.</p>
     <div class="modes" role="group" aria-label="How to answer">
       <button id="m-click" aria-pressed="true">Click to answer</button>
       <button id="m-chat" aria-pressed="false">Answer by chat</button>
@@ -211,10 +180,8 @@ footer p{max-width:78ch}
 
   <aside id="results">
     <div class="panel">
-      <h2>Your top recommendations</h2>
-      <p class="basis" id="basis">Based on all your answers taken together, not on any single question.</p>
-      <div id="gains" class="gains" hidden></div>
-      <div id="plan"></div>
+      <h2>Your recommendations</h2>
+      <div id="sev" class="sev"></div>
       <div class="controls">
         <div>
           <div class="ctl-label">Show only</div>
@@ -242,12 +209,11 @@ footer p{max-width:78ch}
             <button class="tog" data-show="time" aria-pressed="true">Time</button>
             <button class="tog" data-show="evidence" aria-pressed="true">Evidence</button>
             <button class="tog" data-show="why" aria-pressed="true">Why for you</button>
-            <button class="tog" data-show="deep" aria-pressed="true">What, pros and cons, how</button>
+            <button class="tog" data-show="desc" aria-pressed="true">Description</button>
           </div>
         </details>
       </div>
       <div id="rbody"><div class="empty">Answer a question and they'll appear here.</div></div>
-      <div id="kept"></div>
     </div>
   </aside>
 </main>
@@ -260,115 +226,74 @@ footer p{max-width:78ch}
 
 <script>
 const $=s=>document.querySelector(s);
-const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let Q=[], answers={}, picked={}, conditions=[];   // answers: qid -> SCORE (1 bad..5 good); picked: qid -> option index shown
-let lastTop=null, stableAnswers=0, lastAnswered=0;  // stability is counted per NEW answer only
+let Q=[], answers={}, conditions=[];
+let lastTop=null, stableAnswers=0, lastAnswered=0;     // stability is counted per NEW answer only
 let chatIdx=0, chatHist=[];
-const FEEDBACK='https://forms.gle/jJEkKFNk1Ef7LudL6';
-
-/* ---------- the person's plan: kept in THIS browser only, never sent to us ---------- */
-const PLAN_KEY='lemitree.plan.v1';
-let plan={};                                   // abiz -> {state:'try'|'doing'|'skip', name}
-try{ plan=JSON.parse(localStorage.getItem(PLAN_KEY)||'{}')||{}; }catch(e){ plan={}; }
-function savePlan(){ try{ localStorage.setItem(PLAN_KEY,JSON.stringify(plan)); }catch(e){} }
-function mark(abiz,name,state){
-  if(plan[abiz]&&plan[abiz].state===state) delete plan[abiz]; else plan[abiz]={state,name};
-  savePlan(); render();
-}
-const inState=st=>Object.entries(plan).filter(([,v])=>v.state===st);
 
 async function init(){
   Q=await (await fetch('/api/questions')).json();
   const qs=$('#questions');
   Q.forEach(q=>{
+    const labels=q.labels||[q.low,'','','',q.high];
     const d=document.createElement('div'); d.className='q'; d.dataset.qid=q.qid;
-    d.innerHTML=`<div class="text" id="t-${q.qid}"><span class="num">${q.num}.</span><span>${esc(q.text)}</span></div>
-      <div class="scale" role="radiogroup" aria-labelledby="t-${q.qid}">
-        ${q.options.map((o,i)=>`<button class="opt" role="radio" aria-pressed="false" aria-checked="false" data-i="${i}">${esc(o.label)}</button>`).join('')}
+    d.innerHTML=`<div class="cat">${q.category}</div><div class="text">${q.text}</div>
+      <div class="scale" role="radiogroup" aria-label="${q.text}">
+        ${[1,2,3,4,5].map(n=>`<button class="opt" role="radio" aria-pressed="false" aria-checked="false" data-n="${n}"><b>${n}</b><span>${labels[n-1]||''}</span></button>`).join('')}
       </div>`;
-    d.querySelectorAll('.opt').forEach(b=>b.onclick=()=>setAnswer(q.qid,+b.dataset.i,d));
+    d.querySelectorAll('.opt').forEach(b=>b.onclick=()=>setAnswer(q.qid,+b.dataset.n,d));
     qs.appendChild(d);
   });
-  render();
 }
-function setAnswer(qid,i,el){
-  const q=Q.find(x=>x.qid===qid); if(!q||!q.options[i]) return;
-  picked[qid]=i; answers[qid]=q.options[i].score;      // the page shows labels; the engine gets the score
+function setAnswer(qid,n,el){
+  answers[qid]=n;
   (el||document.querySelector(`.q[data-qid="${qid}"]`)).querySelectorAll('.opt').forEach(b=>{
-    const on=+b.dataset.i===i; b.setAttribute('aria-pressed',on); b.setAttribute('aria-checked',on); });
+    const on=+b.dataset.n===n; b.setAttribute('aria-pressed',on); b.setAttribute('aria-checked',on); });
   render();
 }
 const pressed=sel=>[...document.querySelectorAll(sel+' .tog[aria-pressed=true]')];
 const statuses=()=>pressed('#toggles').map(b=>b.dataset.status);
 const onlyTags=()=>pressed('#f-tags').map(b=>b.dataset.tag);
 const SHOW=()=>Object.fromEntries([...document.querySelectorAll('#f-show .tog')].map(b=>[b.dataset.show,b.getAttribute('aria-pressed')==='true']));
-const joinAnd=a=>a.length<2?a.join(''):a.slice(0,-1).join(', ')+' and '+a[a.length-1];
 
-let CUR=[];                                     // the cards on screen, for pros and cons
 async function render(){
   const answered=Object.keys(answers).length;
   $('#bar').style.width=(answered/Q.length*100)+'%';
   $('#plabel').textContent=`${answered} of ${Q.length} answered`;
-  drawPlan();
-  if(!answered){ $('#rbody').innerHTML='<div class="empty">Answer a question and they\'ll appear here.</div>';
-    $('#gains').hidden=true; $('#pill').hidden=true; return; }
-  const exclude=[...inState('doing'),...inState('skip')].map(([k])=>k);
+  if(!answered){ $('#rbody').innerHTML='<div class="empty">Answer a question and they\'ll appear here.</div>'; $('#sev').textContent=''; $('#pill').hidden=true; return; }
   const r=await (await fetch('/api/recommend',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({answers,conditions,statuses:statuses(),only_tags:onlyTags(),exclude,top_n:5})})).json();
-  $('#basis').textContent=`Based on your ${answered} answer${answered===1?'':'s'} so far, taken together — not on any single question. Ranked by how directly each one addresses what you told us, then by the strength of the evidence.`;
-  const g=$('#gains');
-  if(r.gains&&r.gains.length&&!r.suppress_actions){ g.hidden=false; g.innerHTML=`Where you have most to gain: <b>${esc(joinAnd(r.gains))}</b>.`; }
-  else g.hidden=true;
+    body:JSON.stringify({answers,conditions,statuses:statuses(),only_tags:onlyTags(),top_n:5})})).json();
+  const s=r.severity;
+  const names={thriving:'doing well',okay:'okay',struggling:'struggling',suffering:'having a hard time'};
+  $('#sev').innerHTML = s&&s.band ? `Overall you seem to be <b>${names[s.band]||s.band}</b> on sleep (${s.severity>0?'+':''}${s.severity} on −10…+10).` : '';
   let html='';
   if(r.lead_with_referral){
-    html+=`<div class="referral"><h2>${r.suppress_actions?'Please talk to a doctor first':'Worth talking to a doctor'}</h2><p>${esc(r.referral_message)}</p>`;
-    const s=r.severity; if(s.red_flags&&s.red_flags.length) html+=`<ul>${s.red_flags.map(f=>`<li>${esc(f)}</li>`).join('')}</ul>`;
+    html+=`<div class="referral"><h2>${r.suppress_actions?'Please talk to a doctor first':'Worth talking to a doctor'}</h2><p>${r.referral_message}</p>`;
+    if(s.red_flags&&s.red_flags.length) html+=`<ul>${s.red_flags.map(f=>`<li>${f}</li>`).join('')}</ul>`;
     html+='</div>';
   }
-  CUR=r.recommendations||[];
   if(r.suppress_actions){
     html+=`<div class="empty">We're not showing self-help actions here on purpose — the right next step is a clinician.</div>`;
-  } else if(!CUR.length){
+  } else if(!r.recommendations.length){
     html+= onlyTags().length
       ? `<div class="empty">Nothing matches that filter for your answers. Switch it off, or include more kinds of evidence.</div>`
       : `<div class="empty">Nothing to recommend yet for what you've answered — that can be a good sign.</div>`;
   } else {
     if(r.lead_with_referral) html+=`<div class="because" style="margin-bottom:6px">These may still help, but they're secondary to seeing a doctor.</div>`;
-    CUR.forEach((x,i)=>{ html+=card(x,i); });
+    r.recommendations.forEach((x,i)=>{ html+=card(x,i); });
   }
   $('#rbody').innerHTML=html;
 
-  // stability: count only when a NEW answer arrives, never on filter, toggle or plan clicks
-  const top=CUR.slice(0,5).map(x=>x.abiz).join('|');
+  // stability: count only when a NEW answer arrives, never on filter or toggle clicks
+  const top=r.recommendations.slice(0,5).map(x=>x.abiz).join('|');
   if(answered>lastAnswered){ stableAnswers = (top===lastTop) ? stableAnswers+1 : 0; lastTop=top; }
   lastAnswered=answered;
   const left=Q.length-answered, st=$('#settled');
   if(stableAnswers>=3&&left>0&&!r.suppress_actions){ st.hidden=false; st.textContent=`Your top recommendations haven't changed over your last ${stableAnswers} answers. ${left} question${left>1?'s':''} left if you want more precision — or stop here.`; }
   else st.hidden=true;
 
-  const pill=$('#pill'); const n=CUR.length;
+  const pill=$('#pill'); const n=r.recommendations.length;
   pill.hidden=!(n||r.lead_with_referral);
   pill.textContent=r.lead_with_referral?'See what we recommend ↓':`See your ${n} recommendation${n===1?'':'s'} ↓`;
-}
-
-function drawPlan(){
-  const tr=inState('try'), dg=inState('doing'), sk=inState('skip');
-  $('#plan').innerHTML = tr.length ? `<div class="plan"><h3>Your plan (${tr.length})</h3>
-      <ul>${tr.map(([k,v])=>`<li><span>${esc(v.name)}</span><button class="linkbtn" data-unmark="${k}">Remove</button></li>`).join('')}</ul>
-      <div class="row"><button class="copy" id="copyplan">Copy my plan</button><span id="copied">Saved in this browser only.</span></div></div>` : '';
-  const list=(t,a)=>a.length?`<details class="kept"><summary>${t} (${a.length})</summary><ul>${a.map(([k,v])=>`<li><span>${esc(v.name)}</span><button class="linkbtn" data-unmark="${k}">Undo</button></li>`).join('')}</ul></details>`:'';
-  $('#kept').innerHTML=list('Already doing',dg)+list('Not interested',sk);
-}
-function planText(){
-  const sec=(t,a)=>a.length?`${t}:\n${a.map(([,v])=>'- '+v.name).join('\n')}\n`:'';
-  return `My LemiTree sleep plan\n\n${sec('Want to try',inState('try'))}${sec('Already doing',inState('doing'))}${sec('Not interested',inState('skip'))}`.trim();
-}
-async function copyPlan(){
-  const t=planText(); let ok=false;
-  try{ await navigator.clipboard.writeText(t); ok=true; }catch(e){
-    const ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select();
-    try{ ok=document.execCommand('copy'); }catch(_){} ta.remove(); }
-  $('#copied').innerHTML = ok ? `Copied. Paste it into the <a href="${FEEDBACK}" target="_blank" rel="noopener">feedback form</a>.` : 'Copy did not work in this browser — select the list above instead.';
 }
 
 const TIER={evidenced:['Science-backed','evidenced'],supported_unquantified:['Studied, not yet measured','supported'],
@@ -385,7 +310,6 @@ function timeFact(x){
 }
 function card(x,i){
   const sh=SHOW(), t=x.tags||{}, [tierTxt,tierCls]=TIER[x.status]||[x.status,'none'];
-  const state=plan[x.abiz]&&plan[x.abiz].state;
   let tags=`<span class="tier ${tierCls}">${tierTxt}</span>`;
   if(t.one_timer) tags+=`<span class="tag one">One-timer</span>`;
   if(t.zero_time_habit) tags+=`<span class="tag habit">Zero-time habit</span>`;
@@ -396,80 +320,24 @@ function card(x,i){
   if(sh.time){ const [v,s]=timeFact(x); facts.push(`<div class="fact"><div class="k">Your time</div><div class="v">${v}</div><div class="s">${s}</div></div>`); }
   if(sh.evidence){
     let v,s;
-    if(x.status==='evidenced'&&x.g!=null){ v=fmt(x.g); s=`${esc(x.variable)}, ${x.k} stud${x.k===1?'y':'ies'}${x.ci&&x.ci[0]!=null?` · 95% ${fmt(x.ci[0])} to ${fmt(x.ci[1])}`:''}`; }
+    if(x.status==='evidenced'&&x.g!=null){ v=fmt(x.g); s=`${x.variable}, ${x.k} stud${x.k===1?'y':'ies'}${x.ci&&x.ci[0]!=null?` · 95% ${fmt(x.ci[0])} to ${fmt(x.ci[1])}`:''}`; }
     else if(x.status==='supported_unquantified'){ v='Studies exist'; s='numbers not extracted yet'; }
     else if(x.status==='unstudied'){ v='Not studied'; s="shown because it's cheap to try"; }
     else if(x.status==='no_reliable_effect'){ v='No reliable effect'; s='the interval includes zero'; }
     else { v='Nothing found'; s='we searched; none in favour'; }
     facts.push(`<div class="fact"><div class="k">Evidence</div><div class="v">${v}</div><div class="s">${s}</div></div>`);
   }
-  const deep = sh.deep ? `<div class="deep" data-abiz="${x.abiz}" data-i="${i}">
-      <details data-part="what"><summary>What it is</summary><div class="body">Loading…</div></details>
-      <details data-part="procon"><summary>Pros and cons</summary><div class="body">Loading…</div></details>
-      <details data-part="how"><summary>How to do it</summary><div class="body">Loading…</div></details></div>` : '';
-  return `<div class="rec${state==='try'?' in-plan':''}"><div class="rank">${i+1}</div><div class="name">${esc(x.action)}</div>
+  return `<div class="rec"><div class="rank">${i+1}</div><div class="name">${x.action}</div>
     <div class="tags">${tags}</div>
     ${facts.length?`<div class="facts" style="grid-template-columns:repeat(${facts.length},minmax(0,1fr))">${facts.join('')}</div>`:''}
-    ${sh.why&&x.because&&x.because.length?`<div class="because">Why for you: ${x.because.map(b=>`“${esc(b)}”`).join(' and ')}</div>`:''}
-    <div class="acts" role="group" aria-label="Your choice for this action">
-      <button class="act try" data-mark="try" data-abiz="${x.abiz}" aria-pressed="${state==='try'}">${state==='try'?'In your plan':'Want to try'}</button>
-      <button class="act" data-mark="doing" data-abiz="${x.abiz}">Already doing</button>
-      <button class="act" data-mark="skip" data-abiz="${x.abiz}">Not interested</button>
-    </div>${deep}</div>`;
+    ${sh.why&&x.because&&x.because.length?`<div class="because">Why for you: ${x.because.map(b=>`“${b}”`).join(' and ')}</div>`:''}
+    ${sh.desc&&x.description?desc(x.description):''}</div>`;
 }
-
-/* ---------- what / pros and cons / how: loaded on first open ---------- */
-const DET={};
-async function detail(abiz){ if(!DET[abiz]){ const r=await fetch('/api/action/'+encodeURIComponent(abiz)); DET[abiz]=r.ok?await r.json():null; } return DET[abiz]; }
-const DRAFT='<div class="draft">Draft: not yet reviewed by a person</div>';
-function partWhat(d){ return (d.draft?DRAFT:'')+`<p style="margin:0">${esc(d.what||'No description yet.')}</p>`; }
-function partProCon(d,x){
-  const t=x.tags||{}, pros=[], cons=[];
-  let ev;
-  if(x.status==='evidenced'&&x.g!=null) ev=`Studies found a measurable benefit on ${esc(x.variable.toLowerCase())} (${x.k} stud${x.k===1?'y':'ies'}).`;
-  else if(x.status==='supported_unquantified') ev='Studied, not yet measured: papers support it, but we have not extracted their numbers yet.';
-  else if(x.status==='unstudied') ev='Unstudied: no research found yet, so this rests on practical experience.';
-  else ev='The research we found does not show a reliable benefit.';
-  if(x.because&&x.because.length) pros.push('Addresses something you told us about');
-  if(t.one_timer) pros.push('Do it once and it keeps working');
-  if(t.zero_time_habit) pros.push('Costs no time, only a rule to keep');
-  if(t.quick_win) pros.push('Takes under two minutes a day');
-  if(x.setup_cost_eur===0&&x.cost_eur_per_month===0) pros.push('Free');
-  if(x.setup_cost_eur>0) cons.push(`Costs about ${euro(x.setup_cost_eur)} up front`);
-  if(x.cost_eur_per_month>0) cons.push(`About ${euro(x.cost_eur_per_month)} a month after that`);
-  if(x.dedicated_min_per_day>=1) cons.push(`About ${Math.round(x.dedicated_min_per_day)} min of your time a day`);
-  if(x.setup_time_min>=30) cons.push(`About ${fmtMin(x.setup_time_min)} to set up`);
-  pros.push(...d.pros.map(esc)); cons.push(...d.cons.map(esc));
-  const ul=a=>a.length?`<ul>${a.map(p=>`<li>${p}</li>`).join('')}</ul>`:'<p style="margin:0">None recorded.</p>';
-  let h=(d.draft?DRAFT:'')+`<h4>Evidence</h4><p style="margin:0">${ev}</p><h4>Pros</h4>${ul(pros)}<h4>Cons</h4>${ul(cons)}`;
-  if(d.check_first.length) h+=`<h4>Check first if you have</h4><ul>${d.check_first.map(c=>`<li><b>${esc(c.condition)}</b>${c.why?` — ${esc(c.why)}`:''}</li>`).join('')}</ul>`;
-  return h;
-}
-function partHow(d){
-  const draft=d.steps.some(s=>s.draft)||d.settings.some(s=>s.draft);
-  let h=draft?DRAFT:'';
-  const sets=d.settings.filter(s=>s.value);
-  if(sets.length) h+=`<h4>Settings</h4><ul>${sets.map(s=>`<li>${esc(s.name)}: <b>${esc(s.value)}</b>${s.note?`<div class="alt">${esc(s.note)}</div>`:''}</li>`).join('')}</ul>`;
-  if(d.steps.length) h+=`<h4>Steps</h4><ol>${d.steps.map(s=>`<li><div class="step-phase">${esc(s.phase||'')}${s.minutes?` · about ${fmtMin(s.minutes)}`:''}</div>${esc(s.text)}
-      ${s.pitfall?`<div class="pit">Watch out: ${esc(s.pitfall)}</div>`:''}${s.variation?`<div class="alt">Alternative: ${esc(s.variation)}</div>`:''}</li>`).join('')}</ol>`;
-  return h||'<p style="margin:0">No steps recorded yet.</p>';
-}
-document.addEventListener('toggle',async e=>{
-  const det=e.target; if(!(det instanceof HTMLDetailsElement)||!det.open) return;
-  const wrap=det.closest('.deep'); if(!wrap||det.dataset.done) return;
-  const d=await detail(wrap.dataset.abiz), x=CUR[+wrap.dataset.i], body=det.querySelector('.body');
-  if(!d){ body.textContent='Could not load this right now.'; return; }
-  body.innerHTML = det.dataset.part==='what'?partWhat(d):det.dataset.part==='how'?partHow(d):partProCon(d,x);
-  det.dataset.done='1';
-},true);
-
-document.addEventListener('click',e=>{
-  const m=e.target.closest('[data-mark]');
-  if(m){ const x=CUR.find(c=>c.abiz===m.dataset.abiz); mark(m.dataset.abiz,x?x.action:m.dataset.abiz,m.dataset.mark); return; }
-  const u=e.target.closest('[data-unmark]');
-  if(u){ delete plan[u.dataset.unmark]; savePlan(); render(); return; }
-  if(e.target.id==='copyplan') copyPlan();
-});
+function desc(t){ if(t.length<=220) return `<div class="desc">${t}</div>`;
+  const cut=t.slice(0,220).replace(/\s+\S*$/,'');
+  return `<div class="desc"><span class="short">${cut}… <button class="more">more</button></span><span class="long" hidden>${t} <button class="more">less</button></span></div>`; }
+document.addEventListener('click',e=>{ if(!e.target.classList.contains('more')) return;
+  const d=e.target.closest('.desc'); d.querySelector('.short').hidden=!d.querySelector('.short').hidden; d.querySelector('.long').hidden=!d.querySelector('.long').hidden; });
 document.querySelectorAll('.controls .tog').forEach(b=>b.onclick=()=>{ b.setAttribute('aria-pressed', b.getAttribute('aria-pressed')!=='true'); render(); });
 
 /* health conditions */
@@ -478,24 +346,24 @@ $('#cond').addEventListener('input',e=>{
   const v=e.target.value.trim().toLowerCase(), ul=$('#sugglist');
   if(v.length<2){ul.hidden=true;return}
   const hits=ALLC.filter(c=>c.toLowerCase().includes(v)&&!conditions.includes(c)).slice(0,8);
-  ul.innerHTML=hits.map(h=>`<li>${esc(h)}</li>`).join(''); ul.hidden=!hits.length;
+  ul.innerHTML=hits.map(h=>`<li>${h}</li>`).join(''); ul.hidden=!hits.length;
   ul.querySelectorAll('li').forEach(li=>li.onclick=()=>{conditions.push(li.textContent);e.target.value='';ul.hidden=true;drawChips();render();});
 });
-function drawChips(){ $('#chips').innerHTML=conditions.map((c,i)=>`<span class="chip">${esc(c)}<button aria-label="remove ${esc(c)}" data-i="${i}">×</button></span>`).join('');
+function drawChips(){ $('#chips').innerHTML=conditions.map((c,i)=>`<span class="chip">${c}<button aria-label="remove ${c}" data-i="${i}">×</button></span>`).join('');
   $('#chips').querySelectorAll('button').forEach(b=>b.onclick=()=>{conditions.splice(+b.dataset.i,1);drawChips();render();}); }
 
-/* chat mode: the bot picks one of the listed options; the person can tap another */
+/* chat mode */
 $('#m-click').onclick=()=>mode('click'); $('#m-chat').onclick=()=>mode('chat');
 function mode(m){ $('#m-click').setAttribute('aria-pressed',m==='click'); $('#m-chat').setAttribute('aria-pressed',m==='chat');
   $('#questions').style.display=m==='click'?'':'none'; $('#chat').style.display=m==='chat'?'block':'none';
   if(m==='chat'&&!chatHist.length) askNext(); }
 const nextUnanswered=()=>Q.findIndex(q=>!(q.qid in answers));
 async function askNext(){ chatIdx=nextUnanswered(); if(chatIdx<0){ bot("That's every question. Your recommendations are ready."); return; } await chat(null); }
-function bot(t,opt){ const d=document.createElement('div'); d.className='msg bot'; d.textContent=t;
-  if(opt!=null){ const q=Q[chatIdx];
+function bot(t,score){ const d=document.createElement('div'); d.className='msg bot'; d.textContent=t;
+  if(score){ const q=Q[chatIdx], L=q.labels||[];
     const c=document.createElement('div'); c.className='confirm';
-    c.innerHTML='Recorded as: '+q.options.map((o,i)=>`<button data-i="${i}" class="${i===opt?'on':''}">${esc(o.label)}</button>`).join('');
-    c.querySelectorAll('button').forEach(b=>b.onclick=()=>{c.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');setAnswer(q.qid,+b.dataset.i);});
+    c.innerHTML='Recorded as: '+[1,2,3,4,5].map(n=>`<button data-n="${n}" class="${n===score?'on':''}" title="${L[n-1]||''}">${n}</button>`).join('')+` <span>${L[score-1]?`“${L[score-1]}”`:''} — tap to correct</span>`;
+    c.querySelectorAll('button').forEach(b=>b.onclick=()=>{c.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');setAnswer(q.qid,+b.dataset.n);});
     d.appendChild(c); }
   $('#thread').appendChild(d); $('#thread').scrollTop=1e9; }
 function me(t){ const d=document.createElement('div'); d.className='msg me'; d.textContent=t; $('#thread').appendChild(d); $('#thread').scrollTop=1e9; }
@@ -505,7 +373,7 @@ async function chat(userText){
   const r=await res.json();
   if(!res.ok){ bot("Chat isn't available right now — you can still answer by clicking."); return; }
   chatHist.push({role:'assistant',content:r.reply});
-  if(r.option!=null){ setAnswer(Q[chatIdx].qid,r.option); bot(r.reply,r.option); chatHist=[]; setTimeout(askNext,600); }
+  if(r.score){ setAnswer(Q[chatIdx].qid,r.score); bot(r.reply,r.score); chatHist=[]; setTimeout(askNext,600); }
   else bot(r.reply);
 }
 $('#send').onclick=()=>{const v=$('#say').value.trim(); if(!v)return; $('#say').value=''; chat(v);};

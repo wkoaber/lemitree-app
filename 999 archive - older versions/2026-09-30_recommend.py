@@ -93,18 +93,10 @@ def load_questionnaire(qpath=None):
     for r in rows[1:]:
         if not r[hdr["question_id"]]: continue
         sec = r[hdr["secondary_variable_ids"]] or ""
-        q = {"qid": r[hdr["question_id"]], "primary": r[hdr["primary_variable_id"]],
-             "secondary": [s.strip() for s in str(sec).split(",") if s.strip() and s.strip()!="None"],
-             "reverse": str(r[hdr["is_reverse_scored"]]).lower()=="true",
-             "text": r[hdr["question_text"]], "category": r[hdr["question_category"]]}
-        # v2.2 layout: options in display order, each with its own score.
-        # Display order and score differ on purpose (Q12), so read both.
-        if "scale_anchor_1" in hdr and "score_1" in hdr:
-            q["options"] = [{"label": r[hdr[f"scale_anchor_{i}"]], "score": int(r[hdr[f"score_{i}"]])}
-                            for i in range(1, 6) if r[hdr[f"scale_anchor_{i}"]]]
-        if "topic" in hdr:
-            q["topic"] = r[hdr["topic"]]
-        out.append(q)
+        out.append({"qid": r[hdr["question_id"]], "primary": r[hdr["primary_variable_id"]],
+                    "secondary": [s.strip() for s in str(sec).split(",") if s.strip() and s.strip()!="None"],
+                    "reverse": str(r[hdr["is_reverse_scored"]]).lower()=="true",
+                    "text": r[hdr["question_text"]], "category": r[hdr["question_category"]]})
     return out
 
 # ---------------------------------------------------------------------------
